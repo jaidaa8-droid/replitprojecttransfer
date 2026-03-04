@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Map, Marker, NavigationControl } from "react-map-gl/maplibre";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
-import { Search, Filter, X, Zap, ArrowRight, BrainCircuit, AlertTriangle, Crosshair, ChevronRight } from "lucide-react";
+import { Search, X, Zap, ArrowRight, BrainCircuit, Crosshair, Activity } from "lucide-react";
 import { useEvents } from "@/hooks/use-events";
 import { useAnalyzeEvent } from "@/hooks/use-ai";
 import { AppShell } from "@/components/layout/app-shell";
