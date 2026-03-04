@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 import {
   Search, X, Zap, ArrowRight, BrainCircuit, Crosshair,
-  Activity, ChevronLeft, Filter, Clock
+  Activity, ChevronLeft, Filter, Clock, RefreshCw
 } from "lucide-react";
 import { useEvents } from "@/hooks/use-events";
 import { useAnalyzeEvent } from "@/hooks/use-ai";
@@ -49,7 +49,7 @@ export default function GlobalSituation() {
   const [severityFilter, setSeverityFilter] = useState<number | null>(null);
   const [search, setSearch] = useState("");
 
-  const { data: events = [], isLoading } = useEvents(timeWindow);
+  const { data: events = [], isLoading, isFetching, refetch } = useEvents(timeWindow);
 
   const filteredEvents = useMemo(() => {
     return events.filter(e => {
@@ -81,8 +81,10 @@ export default function GlobalSituation() {
             zoomControl={false}
           >
             <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              subdomains="abcd"
+              maxZoom={20}
             />
 
             {filteredEvents.map(event => (
@@ -180,9 +182,20 @@ export default function GlobalSituation() {
             <div className="flex items-center gap-2 mb-3">
               <Activity className="w-4 h-4 text-primary" />
               <span className="font-display font-semibold text-sm tracking-widest text-foreground">INTELLIGENCE FEED</span>
-              <span className="ml-auto text-[10px] font-mono text-muted-foreground">
+              <span className="text-[10px] font-mono text-muted-foreground">
                 {filteredEvents.length}/{events.length}
               </span>
+              <button
+                data-testid="button-refresh-feed"
+                onClick={() => refetch()}
+                disabled={isFetching}
+                className="ml-auto p-1.5 rounded-md hover:bg-secondary/60 transition-colors disabled:opacity-50"
+                title="Refresh feed"
+              >
+                <RefreshCw
+                  className={`w-3.5 h-3.5 text-primary ${isFetching ? "animate-spin" : ""}`}
+                />
+              </button>
             </div>
 
             {/* Search */}
