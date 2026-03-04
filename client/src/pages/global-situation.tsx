@@ -1,11 +1,10 @@
 import { useState, useMemo } from "react";
-import { Map, Marker, NavigationControl, Source, Layer } from "react-map-gl/maplibre";
-import type { LayerSpecification } from "maplibre-gl";
+import { MapContainer, TileLayer, CircleMarker, Tooltip } from "react-leaflet";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 import {
   Search, X, Zap, ArrowRight, BrainCircuit, Crosshair,
-  Activity, ChevronLeft, Filter, SlidersHorizontal, Clock
+  Activity, ChevronLeft, Filter, Clock
 } from "lucide-react";
 import { useEvents } from "@/hooks/use-events";
 import { useAnalyzeEvent } from "@/hooks/use-ai";
@@ -28,7 +27,7 @@ const SEVERITY_COLORS: Record<number, string> = {
   4: "#f97316",
   3: "#eab308",
   2: "#22c55e",
-  1: "#3b82f6",
+  1: "#005C4D",
 };
 
 const SEVERITY_LABELS: Record<number, string> = {
@@ -42,19 +41,6 @@ const SEVERITY_LABELS: Record<number, string> = {
 function severityColor(s: number) {
   return SEVERITY_COLORS[s] ?? SEVERITY_COLORS[1];
 }
-
-// EEZ / maritime boundary GeoJSON layer spec — uses Natural Earth data bundled in the map style
-const eezLineLayer: LayerSpecification = {
-  id: "eez-boundaries",
-  type: "line",
-  source: "eez",
-  paint: {
-    "line-color": "#1e3a5f",
-    "line-width": 1,
-    "line-dasharray": [4, 3],
-    "line-opacity": 0.7,
-  },
-};
 
 export default function GlobalSituation() {
   const [timeWindow, setTimeWindow] = useState<"24h" | "48h" | "5d" | "7d">("7d");
@@ -84,43 +70,51 @@ export default function GlobalSituation() {
       <div className="relative w-full h-full flex overflow-hidden">
 
         {/* ── MAP ─────────────────────────────────────────────────── */}
-        <div className="flex-1 relative bg-[#060a10]">
-          <Map
-            initialViewState={{ longitude: 20, latitude: 25, zoom: 2.2 }}
-            mapStyle="https://tiles.openfreemap.org/styles/dark"
+        <div className="flex-1 relative bg-[#1a1a2e]" style={{ zIndex: 0 }}>
+          <MapContainer
+            center={[25, 20]}
+            zoom={2}
+            minZoom={2}
+            maxZoom={10}
+            style={{ width: "100%", height: "100%", background: "#1a1a2e" }}
             attributionControl={false}
+            zoomControl={false}
           >
-            <NavigationControl position="bottom-right" />
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
 
             {filteredEvents.map(event => (
-              <Marker
+              <CircleMarker
                 key={event.id}
-                longitude={event.longitude}
-                latitude={event.latitude}
-                anchor="center"
-                onClick={e => {
-                  e.originalEvent.stopPropagation();
-                  setSelectedEventId(event.id);
+                center={[event.latitude, event.longitude]}
+                radius={event.severity >= 4 ? 9 : 6}
+                pathOptions={{
+                  color: severityColor(event.severity),
+                  fillColor: severityColor(event.severity),
+                  fillOpacity: selectedEventId === event.id ? 1 : 0.75,
+                  weight: selectedEventId === event.id ? 3 : 1.5,
+                  opacity: 1,
+                }}
+                eventHandlers={{
+                  click: () => setSelectedEventId(event.id),
                 }}
               >
-                <div
-                  title={event.title}
-                  className="cursor-pointer transition-transform hover:scale-150"
-                  style={{
-                    width: event.severity >= 4 ? 14 : 10,
-                    height: event.severity >= 4 ? 14 : 10,
-                    borderRadius: "50%",
-                    backgroundColor: severityColor(event.severity),
-                    boxShadow: `0 0 ${event.severity * 5}px ${severityColor(event.severity)}`,
-                    border: selectedEventId === event.id ? "2px solid white" : "none",
-                  }}
-                />
-              </Marker>
+                <Tooltip direction="top" offset={[0, -8]} opacity={0.95}>
+                  <span className="font-mono text-xs">{event.title}</span>
+                </Tooltip>
+              </CircleMarker>
             ))}
-          </Map>
+          </MapContainer>
+
+          {/* Attribution */}
+          <div className="absolute bottom-1 right-2 z-[1000] text-[10px] text-white/50 font-mono pointer-events-none">
+            © OpenStreetMap contributors
+          </div>
 
           {/* Time window pill */}
-          <div className="absolute top-4 left-4 z-10 flex gap-1 bg-black/70 backdrop-blur rounded-lg p-1 border border-white/10">
+          <div className="absolute top-4 left-4 z-[1000] flex gap-1 bg-black/80 backdrop-blur rounded-lg p-1 border border-white/10">
             {(["24h", "48h", "5d", "7d"] as const).map(tw => (
               <button
                 key={tw}
@@ -138,7 +132,7 @@ export default function GlobalSituation() {
           </div>
 
           {/* Stats pill */}
-          <div className="absolute top-4 right-4 z-10 flex items-center gap-3 bg-black/70 backdrop-blur border border-white/10 px-4 py-2 rounded-lg">
+          <div className="absolute top-4 right-4 z-[1000] flex items-center gap-3 bg-black/80 backdrop-blur border border-white/10 px-4 py-2 rounded-lg">
             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             <span className="text-xs font-mono text-muted-foreground">
               <span className="text-foreground font-bold">{filteredEvents.length}</span> NODES ACTIVE
@@ -146,21 +140,21 @@ export default function GlobalSituation() {
           </div>
 
           {/* Severity legend */}
-          <div className="absolute bottom-10 left-4 z-10 bg-black/70 backdrop-blur border border-white/10 rounded-lg p-3 space-y-1.5">
+          <div className="absolute bottom-8 left-4 z-[1000] bg-black/80 backdrop-blur border border-white/10 rounded-lg p-3 space-y-1.5">
             {[5, 4, 3, 2, 1].map(s => (
               <div key={s} className="flex items-center gap-2">
                 <div
                   className="w-2.5 h-2.5 rounded-full"
                   style={{ backgroundColor: severityColor(s), boxShadow: `0 0 6px ${severityColor(s)}` }}
                 />
-                <span className="text-[10px] font-mono text-muted-foreground">{SEVERITY_LABELS[s]}</span>
+                <span className="text-[10px] font-mono text-white/70">{SEVERITY_LABELS[s]}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* ── RIGHT PANEL ─────────────────────────────────────────── */}
-        <div className="w-[380px] shrink-0 border-l border-border/50 bg-card/95 backdrop-blur-xl flex flex-col h-full relative">
+        <div className="w-[380px] shrink-0 border-l border-border/50 bg-card/95 backdrop-blur-xl flex flex-col h-full relative" style={{ zIndex: 10 }}>
 
           {/* Event detail panel — slides in over the list */}
           <AnimatePresence>
@@ -236,7 +230,7 @@ export default function GlobalSituation() {
               ))}
             </div>
 
-            {/* Category filter — horizontal scroll */}
+            {/* Category filter */}
             <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
               {CATEGORIES.map(cat => (
                 <button
@@ -275,14 +269,13 @@ export default function GlobalSituation() {
                     key={event.id}
                     data-testid={`card-event-${event.id}`}
                     onClick={() => setSelectedEventId(event.id)}
-                    className={`w-full text-left p-3 rounded-lg border transition-all hover-elevate ${
+                    className={`w-full text-left p-3 rounded-lg border transition-all ${
                       selectedEventId === event.id
                         ? "bg-primary/10 border-primary/30"
-                        : "bg-secondary/20 border-border/30 hover:border-border"
+                        : "bg-secondary/20 border-border/30 hover:border-border hover:bg-secondary/40"
                     }`}
                   >
                     <div className="flex items-start gap-2.5">
-                      {/* Severity dot */}
                       <div
                         className="mt-1 shrink-0 w-2 h-2 rounded-full"
                         style={{
@@ -385,7 +378,6 @@ function EventDetail({ event, onClose }: { event: Event; onClose: () => void }) 
             </div>
           </div>
 
-          {/* AI Analysis */}
           {!analyzeMutation.data ? (
             <Button
               data-testid="button-analyze"
