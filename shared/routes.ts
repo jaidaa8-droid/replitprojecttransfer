@@ -53,7 +53,7 @@ export const aiAnalysisResponseSchema = z.object({
     no_regrets: z.array(
       z.object({
         action: z.string(),
-        tag: z.enum(["opportunity", "mitigant", "both"]),
+        tag: z.string(),
         owner_role: z.string(),
         deadline: z.string(),
         trigger: z.string().optional(),
@@ -62,7 +62,7 @@ export const aiAnalysisResponseSchema = z.object({
     study_now: z.array(
       z.object({
         action: z.string(),
-        tag: z.enum(["opportunity", "mitigant", "both"]),
+        tag: z.string(),
         owner_role: z.string(),
         deadline: z.string(),
         trigger: z.string().optional(),
@@ -71,7 +71,7 @@ export const aiAnalysisResponseSchema = z.object({
     monitor: z.array(
       z.object({
         action: z.string(),
-        tag: z.enum(["opportunity", "mitigant", "both"]),
+        tag: z.string(),
         owner_role: z.string(),
         deadline: z.string(),
         trigger: z.string().optional(),

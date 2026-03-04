@@ -1,53 +1,98 @@
 import { useState, useMemo } from "react";
-import { Map, Marker, NavigationControl } from "react-map-gl/maplibre";
+import { Map, Marker, NavigationControl, Source, Layer } from "react-map-gl/maplibre";
+import type { LayerSpecification } from "maplibre-gl";
 import { motion, AnimatePresence } from "framer-motion";
-import { format } from "date-fns";
-import { Search, X, Zap, ArrowRight, BrainCircuit, Crosshair, Activity } from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
+import {
+  Search, X, Zap, ArrowRight, BrainCircuit, Crosshair,
+  Activity, ChevronLeft, Filter, SlidersHorizontal, Clock
+} from "lucide-react";
 import { useEvents } from "@/hooks/use-events";
 import { useAnalyzeEvent } from "@/hooks/use-ai";
 import { AppShell } from "@/components/layout/app-shell";
 import { SeverityBadge, ConfidenceMeter } from "@/components/ui/severity-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Event } from "@shared/schema";
 
-export default function GlobalSituation() {
-  const [timeWindow, setTimeWindow] = useState<"24h" | "48h" | "5d" | "7d">("48h");
-  const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
-  
-  const { data: events = [], isLoading } = useEvents(timeWindow);
-  
-  const selectedEvent = useMemo(() => 
-    events.find(e => e.id === selectedEventId) || null
-  , [events, selectedEventId]);
+const CATEGORIES = [
+  "All", "Conflicts", "Military activity", "Cyber", "Energy",
+  "Sanctions", "Economic disruptions", "Infrastructure outages",
+  "Natural disasters", "Trade chokepoints", "Strategic hotspots",
+];
 
-  const getMarkerColor = (severity: number) => {
-    if (severity >= 5) return '#ef4444'; // red-500
-    if (severity === 4) return '#f97316'; // orange-500
-    if (severity === 3) return '#eab308'; // yellow-500
-    if (severity === 2) return '#22c55e'; // green-500
-    return '#3b82f6'; // blue-500
-  };
+const SEVERITY_COLORS: Record<number, string> = {
+  5: "#ef4444",
+  4: "#f97316",
+  3: "#eab308",
+  2: "#22c55e",
+  1: "#3b82f6",
+};
+
+const SEVERITY_LABELS: Record<number, string> = {
+  5: "CRITICAL",
+  4: "HIGH",
+  3: "MEDIUM",
+  2: "LOW",
+  1: "INFO",
+};
+
+function severityColor(s: number) {
+  return SEVERITY_COLORS[s] ?? SEVERITY_COLORS[1];
+}
+
+// EEZ / maritime boundary GeoJSON layer spec — uses Natural Earth data bundled in the map style
+const eezLineLayer: LayerSpecification = {
+  id: "eez-boundaries",
+  type: "line",
+  source: "eez",
+  paint: {
+    "line-color": "#1e3a5f",
+    "line-width": 1,
+    "line-dasharray": [4, 3],
+    "line-opacity": 0.7,
+  },
+};
+
+export default function GlobalSituation() {
+  const [timeWindow, setTimeWindow] = useState<"24h" | "48h" | "5d" | "7d">("7d");
+  const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [severityFilter, setSeverityFilter] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
+
+  const { data: events = [], isLoading } = useEvents(timeWindow);
+
+  const filteredEvents = useMemo(() => {
+    return events.filter(e => {
+      if (categoryFilter !== "All" && e.category !== categoryFilter) return false;
+      if (severityFilter !== null && e.severity !== severityFilter) return false;
+      if (search && !e.title.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }, [events, categoryFilter, severityFilter, search]);
+
+  const selectedEvent = useMemo(
+    () => events.find(e => e.id === selectedEventId) ?? null,
+    [events, selectedEventId]
+  );
 
   return (
     <AppShell>
-      <div className="relative w-full h-full flex">
-        {/* Main Map Area */}
-        <div className="flex-1 relative bg-[#09090b]">
+      <div className="relative w-full h-full flex overflow-hidden">
+
+        {/* ── MAP ─────────────────────────────────────────────────── */}
+        <div className="flex-1 relative bg-[#060a10]">
           <Map
-            initialViewState={{
-              longitude: 20,
-              latitude: 35,
-              zoom: 2.5
-            }}
-            mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+            initialViewState={{ longitude: 20, latitude: 25, zoom: 2.2 }}
+            mapStyle="https://tiles.openfreemap.org/styles/dark"
             attributionControl={false}
           >
             <NavigationControl position="bottom-right" />
-            
-            {events.map((event) => (
+
+            {filteredEvents.map(event => (
               <Marker
                 key={event.id}
                 longitude={event.longitude}
@@ -58,192 +103,354 @@ export default function GlobalSituation() {
                   setSelectedEventId(event.id);
                 }}
               >
-                <div 
-                  className={`w-4 h-4 rounded-full cursor-pointer transition-transform hover:scale-125 ${event.severity >= 4 ? 'radar-marker' : ''}`}
-                  style={{ 
-                    backgroundColor: getMarkerColor(event.severity),
-                    boxShadow: `0 0 15px ${getMarkerColor(event.severity)}`
+                <div
+                  title={event.title}
+                  className="cursor-pointer transition-transform hover:scale-150"
+                  style={{
+                    width: event.severity >= 4 ? 14 : 10,
+                    height: event.severity >= 4 ? 14 : 10,
+                    borderRadius: "50%",
+                    backgroundColor: severityColor(event.severity),
+                    boxShadow: `0 0 ${event.severity * 5}px ${severityColor(event.severity)}`,
+                    border: selectedEventId === event.id ? "2px solid white" : "none",
                   }}
                 />
               </Marker>
             ))}
           </Map>
 
-          {/* Top Floating Controls */}
-          <div className="absolute top-6 left-6 right-6 flex justify-between items-start pointer-events-none z-10">
-            <div className="glass-panel rounded-xl p-2 flex items-center gap-2 pointer-events-auto">
-              <Search className="w-4 h-4 text-muted-foreground ml-2" />
-              <Input 
-                className="border-0 bg-transparent focus-visible:ring-0 w-64 text-sm font-mono h-8" 
-                placeholder="TRACK ENTITY OR REGION..."
-              />
-              <div className="w-px h-6 bg-border mx-2" />
-              <div className="flex bg-secondary/50 rounded-lg p-1">
-                {(["24h", "48h", "5d", "7d"] as const).map(tw => (
-                  <button
-                    key={tw}
-                    onClick={() => setTimeWindow(tw)}
-                    className={`px-3 py-1 text-xs font-mono rounded-md transition-all ${
-                      timeWindow === tw 
-                      ? 'bg-primary/20 text-primary border border-primary/30' 
-                      : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {tw}
-                  </button>
-                ))}
-              </div>
-            </div>
+          {/* Time window pill */}
+          <div className="absolute top-4 left-4 z-10 flex gap-1 bg-black/70 backdrop-blur rounded-lg p-1 border border-white/10">
+            {(["24h", "48h", "5d", "7d"] as const).map(tw => (
+              <button
+                key={tw}
+                data-testid={`button-time-${tw}`}
+                onClick={() => setTimeWindow(tw)}
+                className={`px-3 py-1 text-xs font-mono rounded-md transition-all ${
+                  timeWindow === tw
+                    ? "bg-primary/20 text-primary border border-primary/40"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {tw}
+              </button>
+            ))}
+          </div>
 
-            <div className="glass-panel px-4 py-2 rounded-xl pointer-events-auto flex items-center gap-4">
-              <div className="flex flex-col items-end">
-                <span className="text-[10px] text-muted-foreground font-display tracking-widest">ACTIVE NODES</span>
-                <span className="font-mono text-primary font-bold">{events.length}</span>
+          {/* Stats pill */}
+          <div className="absolute top-4 right-4 z-10 flex items-center gap-3 bg-black/70 backdrop-blur border border-white/10 px-4 py-2 rounded-lg">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <span className="text-xs font-mono text-muted-foreground">
+              <span className="text-foreground font-bold">{filteredEvents.length}</span> NODES ACTIVE
+            </span>
+          </div>
+
+          {/* Severity legend */}
+          <div className="absolute bottom-10 left-4 z-10 bg-black/70 backdrop-blur border border-white/10 rounded-lg p-3 space-y-1.5">
+            {[5, 4, 3, 2, 1].map(s => (
+              <div key={s} className="flex items-center gap-2">
+                <div
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: severityColor(s), boxShadow: `0 0 6px ${severityColor(s)}` }}
+                />
+                <span className="text-[10px] font-mono text-muted-foreground">{SEVERITY_LABELS[s]}</span>
               </div>
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* Right Drawer - Event Details */}
-        <AnimatePresence>
-          {selectedEvent && (
-            <motion.div
-              initial={{ x: "100%", opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: "100%", opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="w-[450px] shrink-0 border-l border-border/50 bg-card/95 backdrop-blur-2xl h-full flex flex-col shadow-[-20px_0_40px_rgba(0,0,0,0.5)] z-20"
-            >
-              <EventDrawerContent event={selectedEvent} onClose={() => setSelectedEventId(null)} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* ── RIGHT PANEL ─────────────────────────────────────────── */}
+        <div className="w-[380px] shrink-0 border-l border-border/50 bg-card/95 backdrop-blur-xl flex flex-col h-full relative">
+
+          {/* Event detail panel — slides in over the list */}
+          <AnimatePresence>
+            {selectedEvent && (
+              <motion.div
+                key="detail"
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", damping: 26, stiffness: 220 }}
+                className="absolute inset-0 z-20 flex flex-col bg-card"
+              >
+                <EventDetail
+                  event={selectedEvent}
+                  onClose={() => setSelectedEventId(null)}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ── Events feed header ── */}
+          <div className="p-4 border-b border-border bg-secondary/20 shrink-0">
+            <div className="flex items-center gap-2 mb-3">
+              <Activity className="w-4 h-4 text-primary" />
+              <span className="font-display font-semibold text-sm tracking-widest text-foreground">INTELLIGENCE FEED</span>
+              <span className="ml-auto text-[10px] font-mono text-muted-foreground">
+                {filteredEvents.length}/{events.length}
+              </span>
+            </div>
+
+            {/* Search */}
+            <div className="relative mb-3">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <Input
+                data-testid="input-event-search"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="pl-8 h-8 text-xs font-mono bg-secondary/40 border-border/50"
+                placeholder="SEARCH EVENTS..."
+              />
+              {search && (
+                <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                  <X className="w-3 h-3 text-muted-foreground" />
+                </button>
+              )}
+            </div>
+
+            {/* Severity filter */}
+            <div className="flex gap-1 mb-2 flex-wrap">
+              <button
+                data-testid="button-sev-all"
+                onClick={() => setSeverityFilter(null)}
+                className={`px-2 py-0.5 text-[10px] font-mono rounded border transition-all ${
+                  severityFilter === null
+                    ? "bg-secondary text-foreground border-border"
+                    : "text-muted-foreground border-transparent"
+                }`}
+              >ALL SEV</button>
+              {[5, 4, 3, 2, 1].map(s => (
+                <button
+                  key={s}
+                  data-testid={`button-sev-${s}`}
+                  onClick={() => setSeverityFilter(severityFilter === s ? null : s)}
+                  className={`px-2 py-0.5 text-[10px] font-mono rounded border transition-all ${
+                    severityFilter === s
+                      ? "text-black border-transparent"
+                      : "text-muted-foreground border-transparent hover:text-foreground"
+                  }`}
+                  style={severityFilter === s ? { backgroundColor: severityColor(s) } : {}}
+                >
+                  S{s}
+                </button>
+              ))}
+            </div>
+
+            {/* Category filter — horizontal scroll */}
+            <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
+              {CATEGORIES.map(cat => (
+                <button
+                  key={cat}
+                  data-testid={`button-cat-${cat.replace(/\s+/g, "-").toLowerCase()}`}
+                  onClick={() => setCategoryFilter(cat)}
+                  className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-mono rounded border transition-all shrink-0 ${
+                    categoryFilter === cat
+                      ? "bg-primary/20 text-primary border-primary/40"
+                      : "text-muted-foreground border-transparent hover:text-foreground"
+                  }`}
+                >
+                  {cat.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Events list ── */}
+          <ScrollArea className="flex-1">
+            {isLoading ? (
+              <div className="p-6 space-y-3">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="h-16 rounded-lg bg-secondary/30 animate-pulse" />
+                ))}
+              </div>
+            ) : filteredEvents.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-40 text-muted-foreground text-xs font-mono">
+                <Filter className="w-6 h-6 mb-2 opacity-40" />
+                NO EVENTS MATCH FILTERS
+              </div>
+            ) : (
+              <div className="p-2 space-y-1">
+                {filteredEvents.map(event => (
+                  <button
+                    key={event.id}
+                    data-testid={`card-event-${event.id}`}
+                    onClick={() => setSelectedEventId(event.id)}
+                    className={`w-full text-left p-3 rounded-lg border transition-all hover-elevate ${
+                      selectedEventId === event.id
+                        ? "bg-primary/10 border-primary/30"
+                        : "bg-secondary/20 border-border/30 hover:border-border"
+                    }`}
+                  >
+                    <div className="flex items-start gap-2.5">
+                      {/* Severity dot */}
+                      <div
+                        className="mt-1 shrink-0 w-2 h-2 rounded-full"
+                        style={{
+                          backgroundColor: severityColor(event.severity),
+                          boxShadow: `0 0 6px ${severityColor(event.severity)}`,
+                        }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-semibold leading-snug mb-1 truncate">
+                          {event.title}
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] font-mono text-muted-foreground bg-secondary/50 px-1.5 py-0.5 rounded">
+                            {event.category}
+                          </span>
+                          <span className="text-[10px] font-mono text-muted-foreground flex items-center gap-1">
+                            <Clock className="w-2.5 h-2.5" />
+                            {formatDistanceToNow(new Date(event.timestamp), { addSuffix: true })}
+                          </span>
+                        </div>
+                      </div>
+                      <span
+                        className="text-[10px] font-mono font-bold shrink-0"
+                        style={{ color: severityColor(event.severity) }}
+                      >
+                        S{event.severity}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </div>
       </div>
     </AppShell>
   );
 }
 
-function EventDrawerContent({ event, onClose }: { event: Event, onClose: () => void }) {
+/* ─── Event Detail Panel ──────────────────────────────────────────── */
+function EventDetail({ event, onClose }: { event: Event; onClose: () => void }) {
   const analyzeMutation = useAnalyzeEvent();
-  
+
   return (
     <>
-      <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/30">
-        <div className="flex items-center gap-3">
-          <Activity className="w-5 h-5 text-primary" />
-          <h2 className="font-display font-semibold text-lg tracking-wide text-foreground">NODE: {event.id.toString().padStart(4, '0')}</h2>
-        </div>
-        <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full hover:bg-white/10">
-          <X className="w-4 h-4" />
+      <div className="p-3 border-b border-border bg-secondary/30 flex items-center gap-2 shrink-0">
+        <Button variant="ghost" size="icon" onClick={onClose} data-testid="button-close-detail">
+          <ChevronLeft className="w-4 h-4" />
         </Button>
+        <Activity className="w-4 h-4 text-primary" />
+        <span className="font-display text-sm font-semibold tracking-wide">NODE {event.id.toString().padStart(4, "0")}</span>
+        <div className="ml-auto">
+          <SeverityBadge level={event.severity} glow={event.severity >= 4} />
+        </div>
       </div>
-      
-      <ScrollArea className="flex-1 p-6">
-        <div className="space-y-6">
-          <div className="flex items-start justify-between gap-4">
-            <h1 className="text-xl font-bold leading-tight">{event.title}</h1>
-            <SeverityBadge level={event.severity} glow={event.severity >= 4} />
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
+
+      <ScrollArea className="flex-1 p-5">
+        <div className="space-y-5">
+          <h1 className="text-base font-bold leading-snug">{event.title}</h1>
+
+          <div className="grid grid-cols-2 gap-3">
             <div className="bg-secondary/30 p-3 rounded-lg border border-border/50">
-              <div className="text-[10px] text-muted-foreground font-display tracking-widest mb-1">CATEGORY</div>
-              <div className="font-mono text-sm">{event.category}</div>
+              <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-1">CATEGORY</div>
+              <div className="font-mono text-xs">{event.category}</div>
             </div>
             <div className="bg-secondary/30 p-3 rounded-lg border border-border/50">
-              <div className="text-[10px] text-muted-foreground font-display tracking-widest mb-1">TIMESTAMP</div>
-              <div className="font-mono text-sm">{format(new Date(event.timestamp), "yyyy-MM-dd HH:mm")}</div>
+              <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-1">TIMESTAMP</div>
+              <div className="font-mono text-xs">{format(new Date(event.timestamp), "MMM dd HH:mm")}</div>
+            </div>
+            <div className="bg-secondary/30 p-3 rounded-lg border border-border/50">
+              <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-1">COORDINATES</div>
+              <div className="font-mono text-xs">{event.latitude.toFixed(2)}°, {event.longitude.toFixed(2)}°</div>
+            </div>
+            <div className="bg-secondary/30 p-3 rounded-lg border border-border/50">
+              <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-1">SEVERITY</div>
+              <div className="font-mono text-xs font-bold" style={{ color: severityColor(event.severity) }}>
+                {SEVERITY_LABELS[event.severity]}
+              </div>
             </div>
           </div>
 
           <div>
-            <div className="text-[10px] text-muted-foreground font-display tracking-widest mb-2">SIGNAL CONFIDENCE</div>
+            <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-2">CONFIDENCE</div>
             <ConfidenceMeter value={event.confidence} />
           </div>
 
           <div>
-            <div className="text-[10px] text-muted-foreground font-display tracking-widest mb-2">INTELLIGENCE SUMMARY</div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {event.description}
-            </p>
+            <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-2">INTELLIGENCE SUMMARY</div>
+            <p className="text-xs text-muted-foreground leading-relaxed">{event.description}</p>
           </div>
 
           <div>
-            <div className="text-[10px] text-muted-foreground font-display tracking-widest mb-2">SOURCES</div>
-            <div className="flex flex-wrap gap-2">
+            <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-2">SOURCES</div>
+            <div className="flex flex-wrap gap-1.5">
               {event.sources.map((src, i) => (
-                <span key={i} className="px-2 py-1 bg-secondary rounded text-xs font-mono text-secondary-foreground border border-border">
+                <span key={i} className="px-2 py-0.5 bg-secondary rounded text-xs font-mono border border-border">
                   {src}
                 </span>
               ))}
             </div>
           </div>
 
+          {/* AI Analysis */}
           {!analyzeMutation.data ? (
-            <Button 
-              className="w-full h-12 font-display tracking-widest gap-2 bg-gradient-to-r from-primary/80 to-primary text-primary-foreground hover:from-primary hover:to-primary/90 shadow-[0_0_20px_rgba(0,229,255,0.3)] transition-all"
+            <Button
+              data-testid="button-analyze"
+              className="w-full gap-2"
               onClick={() => analyzeMutation.mutate({ event_id: event.id })}
               disabled={analyzeMutation.isPending}
             >
               {analyzeMutation.isPending ? (
                 <>
-                  <div className="w-4 h-4 rounded-full border-2 border-background border-t-transparent animate-spin" />
-                  PROCESSING SYNTHESIS...
+                  <div className="w-3.5 h-3.5 rounded-full border-2 border-background border-t-transparent animate-spin" />
+                  PROCESSING...
                 </>
               ) : (
                 <>
-                  <BrainCircuit className="w-5 h-5" />
-                  INITIATE STRATEGIC AI ANALYSIS
+                  <BrainCircuit className="w-4 h-4" />
+                  ANALYZE IMPLICATIONS
                 </>
               )}
             </Button>
           ) : (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-8 border-t border-border pt-6"
+              className="border-t border-border pt-4"
             >
-              <h3 className="font-display font-semibold text-primary flex items-center gap-2 mb-4">
-                <Zap className="w-4 h-4" /> AI SYNTHESIS COMPLETE
+              <h3 className="font-display text-xs font-semibold text-primary flex items-center gap-1.5 mb-3">
+                <Zap className="w-3.5 h-3.5" /> AI SYNTHESIS COMPLETE
               </h3>
-              
+
               <Tabs defaultValue="analogues" className="w-full">
-                <TabsList className="w-full grid grid-cols-4 bg-secondary/50 rounded-lg h-auto p-1 mb-4">
-                  <TabsTrigger value="analogues" className="text-[10px] font-display py-2 data-[state=active]:bg-card">HISTORIC</TabsTrigger>
-                  <TabsTrigger value="causal" className="text-[10px] font-display py-2 data-[state=active]:bg-card">CAUSAL</TabsTrigger>
-                  <TabsTrigger value="impact" className="text-[10px] font-display py-2 data-[state=active]:bg-card">IMPACT</TabsTrigger>
-                  <TabsTrigger value="action" className="text-[10px] font-display py-2 data-[state=active]:bg-card">ACTION</TabsTrigger>
+                <TabsList className="w-full grid grid-cols-4 bg-secondary/50 h-auto p-0.5 mb-3">
+                  <TabsTrigger value="analogues" className="text-[10px] font-mono py-1.5">HIST</TabsTrigger>
+                  <TabsTrigger value="causal" className="text-[10px] font-mono py-1.5">CAUSAL</TabsTrigger>
+                  <TabsTrigger value="impact" className="text-[10px] font-mono py-1.5">IMPACT</TabsTrigger>
+                  <TabsTrigger value="action" className="text-[10px] font-mono py-1.5">ACTION</TabsTrigger>
                 </TabsList>
-                
-                <TabsContent value="analogues" className="space-y-4">
+
+                <TabsContent value="analogues" className="space-y-3">
                   {analyzeMutation.data.historical_analogues.map((a, i) => (
-                    <div key={i} className="bg-secondary/20 p-4 rounded-xl border border-border/50 hover:border-primary/30 transition-colors">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="font-semibold text-sm">{a.title} ({a.year})</div>
-                        <div className="text-[10px] font-mono text-primary bg-primary/10 px-2 py-1 rounded">
-                          {(a.similarity_score * 100).toFixed(0)}% MATCH
+                    <div key={i} className="bg-secondary/20 p-3 rounded-lg border border-border/50">
+                      <div className="flex justify-between items-start mb-1 gap-2">
+                        <div className="font-semibold text-xs">{a.title} ({a.year})</div>
+                        <div className="text-[10px] font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded shrink-0">
+                          {(a.similarity_score * 100).toFixed(0)}%
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">{a.rationale}</p>
+                      <p className="text-[11px] text-muted-foreground">{a.rationale}</p>
                     </div>
                   ))}
                 </TabsContent>
-                
+
                 <TabsContent value="causal" className="space-y-0">
                   {analyzeMutation.data.causal_chain.map((c, i) => (
-                    <div key={i} className="relative pl-6 pb-6 last:pb-0">
-                      <div className="absolute left-[11px] top-2 bottom-0 w-px bg-border last:hidden" />
-                      <div className="absolute left-[7px] top-2 w-2.5 h-2.5 rounded-full bg-secondary border-2 border-primary" />
-                      <div className="bg-secondary/20 p-3 rounded-lg border border-border/50">
-                        <div className="flex justify-between items-center mb-1">
+                    <div key={i} className="relative pl-5 pb-4 last:pb-0">
+                      <div className="absolute left-[9px] top-2 bottom-0 w-px bg-border" />
+                      <div className="absolute left-[6px] top-2 w-2 h-2 rounded-full bg-secondary border-2 border-primary" />
+                      <div className="bg-secondary/20 p-2.5 rounded-lg border border-border/50">
+                        <div className="flex justify-between items-center mb-0.5 gap-2">
                           <span className="text-xs font-semibold">{c.claim}</span>
-                          <span className="text-[10px] font-mono text-warning">{c.probability}</span>
+                          <span className="text-[10px] font-mono text-yellow-400 shrink-0">{c.probability}</span>
                         </div>
-                        <div className="text-[10px] text-muted-foreground font-mono mb-2">HORIZON: {c.time_horizon}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono mb-1.5">↳ {c.time_horizon}</div>
                         <div className="flex flex-wrap gap-1">
                           {c.evidence_signals.map((sig, j) => (
-                            <span key={j} className="text-[9px] bg-background px-1.5 py-0.5 rounded border border-border text-muted-foreground">
+                            <span key={j} className="text-[9px] bg-background px-1.5 py-0.5 rounded border border-border/70 text-muted-foreground">
                               {sig}
                             </span>
                           ))}
@@ -253,43 +460,43 @@ function EventDrawerContent({ event, onClose }: { event: Event, onClose: () => v
                   ))}
                 </TabsContent>
 
-                <TabsContent value="impact" className="space-y-3">
+                <TabsContent value="impact" className="space-y-2">
                   {analyzeMutation.data.portfolio_impact.map((p, i) => (
-                    <div key={i} className="flex gap-3 bg-secondary/20 p-3 rounded-lg border border-border/50">
-                      <div className="mt-0.5"><Crosshair className="w-4 h-4 text-destructive" /></div>
+                    <div key={i} className="flex gap-2.5 bg-secondary/20 p-2.5 rounded-lg border border-border/50">
+                      <Crosshair className="w-3.5 h-3.5 text-destructive mt-0.5 shrink-0" />
                       <div>
-                        <div className="text-sm font-semibold">{p.asset_or_business}</div>
-                        <div className="text-xs text-muted-foreground mt-1">{p.pathway}</div>
-                        <div className="flex gap-2 mt-2">
-                          <span className="text-[10px] font-mono bg-destructive/10 text-destructive px-2 py-0.5 rounded border border-destructive/20">{p.impact_type}</span>
-                          <span className="text-[10px] font-mono bg-background px-2 py-0.5 rounded border border-border">{p.magnitude}</span>
+                        <div className="text-xs font-semibold">{p.asset_or_business}</div>
+                        <div className="text-[11px] text-muted-foreground mt-0.5">{p.pathway}</div>
+                        <div className="flex gap-1.5 mt-1.5">
+                          <span className="text-[10px] font-mono bg-destructive/10 text-destructive px-1.5 py-0.5 rounded border border-destructive/20">{p.impact_type}</span>
+                          <span className="text-[10px] font-mono bg-background px-1.5 py-0.5 rounded border border-border">{p.magnitude}</span>
                         </div>
                       </div>
                     </div>
                   ))}
                 </TabsContent>
 
-                <TabsContent value="action" className="space-y-4">
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-display font-bold text-primary flex items-center gap-2"><ArrowRight className="w-3 h-3"/> NO REGRETS</h4>
-                    {analyzeMutation.data.action_framework.no_regrets.map((a, i) => (
-                      <div key={i} className="bg-secondary/30 p-3 rounded border border-primary/20 text-sm">
-                        {a.action}
-                        <div className="mt-2 flex gap-2 text-[10px] font-mono">
-                          <span className="text-muted-foreground">OWNER: {a.owner_role}</span>
-                          <span className="text-muted-foreground">| DUE: {a.deadline}</span>
+                <TabsContent value="action" className="space-y-3">
+                  {[
+                    { label: "NO REGRETS", key: "no_regrets" as const, color: "text-primary", borderColor: "border-primary/20" },
+                    { label: "STUDY NOW", key: "study_now" as const, color: "text-yellow-400", borderColor: "border-yellow-400/20" },
+                    { label: "MONITOR", key: "monitor" as const, color: "text-muted-foreground", borderColor: "border-border" },
+                  ].map(({ label, key, color, borderColor }) => (
+                    <div key={key}>
+                      <h4 className={`text-[10px] font-mono font-bold ${color} flex items-center gap-1 mb-1.5`}>
+                        <ArrowRight className="w-2.5 h-2.5" /> {label}
+                      </h4>
+                      {analyzeMutation.data!.action_framework[key].map((a, i) => (
+                        <div key={i} className={`bg-secondary/20 p-2.5 rounded border ${borderColor} text-xs mb-1.5`}>
+                          {a.action}
+                          <div className="mt-1 text-[10px] font-mono text-muted-foreground">
+                            {a.owner_role} · {a.deadline}
+                            {"trigger" in a && a.trigger ? ` · IF: ${a.trigger}` : ""}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-display font-bold text-warning flex items-center gap-2"><ArrowRight className="w-3 h-3"/> STUDY NOW</h4>
-                    {analyzeMutation.data.action_framework.study_now.map((a, i) => (
-                      <div key={i} className="bg-secondary/20 p-3 rounded border border-warning/20 text-sm">
-                        {a.action}
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ))}
                 </TabsContent>
               </Tabs>
             </motion.div>
