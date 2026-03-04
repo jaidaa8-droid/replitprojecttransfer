@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 import {
   Search, X, Zap, ArrowRight, BrainCircuit, Crosshair,
-  Activity, ChevronLeft, Filter, Clock, RefreshCw
+  Activity, ChevronLeft, Filter, Clock, RefreshCw, Layers
 } from "lucide-react";
 import { useEvents } from "@/hooks/use-events";
 import { useAnalyzeEvent } from "@/hooks/use-ai";
@@ -48,6 +48,7 @@ export default function GlobalSituation() {
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [severityFilter, setSeverityFilter] = useState<number | null>(null);
   const [search, setSearch] = useState("");
+  const [feedOpen, setFeedOpen] = useState(true);
 
   const { data: events = [], isLoading, isFetching, refetch } = useEvents(timeWindow);
 
@@ -67,10 +68,13 @@ export default function GlobalSituation() {
 
   return (
     <AppShell>
-      <div className="relative w-full h-full flex overflow-hidden">
+      <div className="relative w-full h-full flex flex-col md:flex-row overflow-hidden">
 
         {/* ── MAP ─────────────────────────────────────────────────── */}
-        <div className="flex-1 relative bg-[#1a1a2e]" style={{ zIndex: 0 }}>
+        <div
+          className="relative bg-[#1a1a2e] flex-1 min-h-0"
+          style={{ zIndex: 0 }}
+        >
           <MapContainer
             center={[25, 20]}
             zoom={2}
@@ -116,13 +120,13 @@ export default function GlobalSituation() {
           </div>
 
           {/* Time window pill */}
-          <div className="absolute top-4 left-4 z-[1000] flex gap-1 bg-black/80 backdrop-blur rounded-lg p-1 border border-white/10">
+          <div className="absolute top-3 left-3 z-[1000] flex gap-1 bg-black/80 backdrop-blur rounded-lg p-1 border border-white/10">
             {(["24h", "48h", "5d", "7d"] as const).map(tw => (
               <button
                 key={tw}
                 data-testid={`button-time-${tw}`}
                 onClick={() => setTimeWindow(tw)}
-                className={`px-3 py-1 text-xs font-mono rounded-md transition-all ${
+                className={`px-2 md:px-3 py-1 text-xs font-mono rounded-md transition-all ${
                   timeWindow === tw
                     ? "bg-primary/20 text-primary border border-primary/40"
                     : "text-muted-foreground hover:text-foreground"
@@ -133,16 +137,16 @@ export default function GlobalSituation() {
             ))}
           </div>
 
-          {/* Stats pill */}
-          <div className="absolute top-4 right-4 z-[1000] flex items-center gap-3 bg-black/80 backdrop-blur border border-white/10 px-4 py-2 rounded-lg">
+          {/* Stats pill — hidden on mobile to save space */}
+          <div className="hidden md:flex absolute top-3 right-3 z-[1000] items-center gap-3 bg-black/80 backdrop-blur border border-white/10 px-4 py-2 rounded-lg">
             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             <span className="text-xs font-mono text-muted-foreground">
               <span className="text-foreground font-bold">{filteredEvents.length}</span> NODES ACTIVE
             </span>
           </div>
 
-          {/* Severity legend */}
-          <div className="absolute bottom-8 left-4 z-[1000] bg-black/80 backdrop-blur border border-white/10 rounded-lg p-3 space-y-1.5">
+          {/* Severity legend — hidden on mobile */}
+          <div className="hidden md:block absolute bottom-8 left-4 z-[1000] bg-black/80 backdrop-blur border border-white/10 rounded-lg p-3 space-y-1.5">
             {[5, 4, 3, 2, 1].map(s => (
               <div key={s} className="flex items-center gap-2">
                 <div
@@ -153,10 +157,23 @@ export default function GlobalSituation() {
               </div>
             ))}
           </div>
+
+          {/* Mobile feed toggle button */}
+          <button
+            data-testid="button-toggle-feed"
+            onClick={() => setFeedOpen(v => !v)}
+            className="md:hidden absolute bottom-4 right-4 z-[1000] flex items-center gap-1.5 bg-black/90 backdrop-blur border border-white/20 px-3 py-2 rounded-full text-xs font-mono text-white/80 shadow-lg"
+          >
+            <Layers className="w-3.5 h-3.5" />
+            {feedOpen ? "HIDE FEED" : "SHOW FEED"}
+          </button>
         </div>
 
         {/* ── RIGHT PANEL ─────────────────────────────────────────── */}
-        <div className="w-[380px] shrink-0 border-l border-border/50 bg-card/95 backdrop-blur-xl flex flex-col h-full relative" style={{ zIndex: 10 }}>
+        <div
+          className={`${feedOpen ? "flex h-1/2" : "hidden"} md:flex md:h-full md:w-[380px] w-full shrink-0 border-t md:border-t-0 md:border-l border-border/50 bg-card/95 backdrop-blur-xl flex-col relative`}
+          style={{ zIndex: 10 }}
+        >
 
           {/* Event detail panel — slides in over the list */}
           <AnimatePresence>

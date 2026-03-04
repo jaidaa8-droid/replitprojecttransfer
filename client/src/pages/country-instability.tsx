@@ -22,17 +22,18 @@ export default function CountryInstability() {
   return (
     <AppShell>
       <div className="h-full flex flex-col p-6 md:p-8 overflow-hidden bg-background">
-        <header className="mb-8 border-b border-border/50 pb-6">
-          <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
-            <ShieldAlert className="w-8 h-8 text-primary" />
+        <header className="mb-4 md:mb-8 border-b border-border/50 pb-4 md:pb-6">
+          <h1 className="text-xl md:text-3xl font-display font-bold text-foreground flex items-center gap-2 md:gap-3">
+            <ShieldAlert className="w-6 h-6 md:w-8 md:h-8 text-primary shrink-0" />
             NATION-STATE INSTABILITY INDEX
           </h1>
-          <p className="text-muted-foreground font-mono mt-2 text-sm max-w-3xl">
-            Real-time algorithmic assessment of geopolitical fragility, sovereign risk, and governance deterioration mapped across primary operational theaters.
+          <p className="text-muted-foreground font-mono mt-1 text-xs md:text-sm">
+            Real-time algorithmic assessment of geopolitical fragility and sovereign risk.
           </p>
         </header>
 
         <div className="flex-1 overflow-auto glass-panel rounded-xl border-border/50">
+          <div className="min-w-[640px]">
           <Table>
             <TableHeader className="bg-secondary/80 sticky top-0 backdrop-blur-md z-10">
               <TableRow className="border-border hover:bg-transparent">
@@ -81,6 +82,7 @@ export default function CountryInstability() {
               )}
             </TableBody>
           </Table>
+          </div>
         </div>
       </div>
     </AppShell>

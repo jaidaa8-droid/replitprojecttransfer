@@ -14,12 +14,12 @@ export default function StrategicRisk() {
   return (
     <AppShell>
       <div className="h-full flex flex-col p-6 md:p-8 bg-background overflow-hidden">
-        <header className="mb-8">
-          <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
-            <Target className="w-8 h-8 text-primary" />
+        <header className="mb-4 md:mb-8">
+          <h1 className="text-xl md:text-3xl font-display font-bold text-foreground flex items-center gap-2 md:gap-3">
+            <Target className="w-6 h-6 md:w-8 md:h-8 text-primary shrink-0" />
             STRATEGIC RISK OVERSIGHT
           </h1>
-          <p className="text-muted-foreground font-mono mt-2 text-sm">
+          <p className="text-muted-foreground font-mono mt-1 text-xs md:text-sm">
             High-priority threat vectors requiring immediate strategic alignment.
           </p>
         </header>

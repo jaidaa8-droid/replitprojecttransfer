@@ -28,11 +28,12 @@ Preferred communication style: Simple, everyday language.
 - **React + Vite + TypeScript** — Single-page application with fast HMR in development
 - **Routing** — `wouter` for lightweight client-side routing (no React Router)
 - **State & Data Fetching** — `@tanstack/react-query` with a custom `queryClient` configured for no background refetching (`staleTime: Infinity`, `refetchOnWindowFocus: false`)
-- **Map** — `MapLibre GL JS` via `react-map-gl/maplibre`. Uses CartoDB Dark Matter style tile URL (no API key required). Map is full-screen on the Global Situation page.
+- **Map** — `React Leaflet v4` with CartoDB Dark Matter tiles (dark_all). Map is full-screen on the Global Situation page with event CircleMarkers.
 - **UI Components** — `shadcn/ui` (New York style) built on Radix UI primitives, using Tailwind CSS for styling
 - **Animations** — `framer-motion` for panel transitions and event detail overlays
 - **Charts** — `recharts` for sector risk heatmaps and trend visualizations
-- **Theme** — Custom dark "command center" aesthetic. CSS variables defined in `client/src/index.css`. Primary color: Cyber Cyan (`hsl(189, 94%, 43%)`). Fonts: Oxanium (display), Plus Jakarta Sans (body), JetBrains Mono (mono)
+- **Theme** — Custom dark "command center" aesthetic. CSS variables defined in `client/src/index.css`. Primary color: Cyber Cyan (`hsl(189, 94%, 43%)`). Brand accent for nav: `#005C4D`. Fonts: Oxanium (display), Plus Jakarta Sans (body), JetBrains Mono (mono)
+- **Responsive Layout** — Mobile (<768px): bottom tab nav bar, map + feed panel stacked vertically with a toggle button; Tablet/Desktop (768px+): left sidebar rail (hidden md:flex), full side-by-side map and feed panel
 - **Path aliases:**
   - `@/*` → `client/src/*`
   - `@shared/*` → `shared/*`

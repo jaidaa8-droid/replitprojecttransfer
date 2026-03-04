@@ -13,18 +13,19 @@ export default function GlobalInsights() {
         <div className="absolute inset-0 bg-background/90 backdrop-blur-sm z-0" />
         
         <div className="relative z-10 flex-1 flex flex-col">
-          <header className="flex justify-between items-end mb-8">
-            <div>
-              <h1 className="text-3xl font-display font-bold text-foreground">STRATEGIC INTELLIGENCE BRIEF</h1>
-              <p className="text-muted-foreground font-mono mt-2 text-sm">SYSTEM GENERATED SYNTHESIS // CONFIDENTIAL</p>
+          <header className="flex flex-col sm:flex-row gap-3 sm:items-end mb-4 md:mb-8">
+            <div className="flex-1">
+              <h1 className="text-xl md:text-3xl font-display font-bold text-foreground">STRATEGIC INTELLIGENCE BRIEF</h1>
+              <p className="text-muted-foreground font-mono mt-1 text-xs md:text-sm">SYSTEM GENERATED SYNTHESIS // CONFIDENTIAL</p>
             </div>
-            <Button 
+            <Button
+              data-testid="button-generate-brief"
               onClick={() => generateMutation.mutate({ timeWindow: "48h" })}
               disabled={generateMutation.isPending}
-              className="bg-primary/20 text-primary border border-primary/50 hover:bg-primary/30"
+              className="bg-primary/20 text-primary border border-primary/50 hover:bg-primary/30 shrink-0 text-xs md:text-sm"
             >
               {generateMutation.isPending ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Activity className="w-4 h-4 mr-2" />}
-              {generateMutation.isPending ? "COMPILING INTELLIGENCE..." : "GENERATE LATEST BRIEF"}
+              {generateMutation.isPending ? "COMPILING..." : "GENERATE BRIEF"}
             </Button>
           </header>
 

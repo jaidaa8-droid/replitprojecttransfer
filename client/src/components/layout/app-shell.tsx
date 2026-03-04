@@ -13,22 +13,23 @@ export function AppShell({ children }: AppShellProps) {
   const [location] = useLocation();
 
   const navItems = [
-    { href: "/", icon: Map, label: "Global Situation" },
-    { href: "/insights", icon: Activity, label: "Intelligence Brief" },
-    { href: "/countries", icon: Globe, label: "Country Instability" },
-    { href: "/sectors", icon: PieChart, label: "Sector Heatmap" },
-    { href: "/oversight", icon: ShieldAlert, label: "Strategic Oversight" },
+    { href: "/", icon: Map, label: "Map" },
+    { href: "/insights", icon: Activity, label: "Brief" },
+    { href: "/countries", icon: Globe, label: "Nations" },
+    { href: "/sectors", icon: PieChart, label: "Sectors" },
+    { href: "/oversight", icon: ShieldAlert, label: "Oversight" },
   ];
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden text-foreground">
-      {/* Left Navigation Rail */}
-      <nav className="w-16 md:w-20 border-r border-border/50 bg-card/50 backdrop-blur-md flex flex-col items-center py-6 z-50 shrink-0">
+
+      {/* ── Left Navigation Rail (tablet+) ── */}
+      <nav className="hidden md:flex w-16 lg:w-20 border-r border-border/50 bg-card/50 backdrop-blur-md flex-col items-center py-6 z-50 shrink-0">
         <div className="mb-8 relative group cursor-pointer">
           <div className="absolute inset-0 blur-xl rounded-full transition-all" style={{ backgroundColor: `${BRAND}33` }} />
           <Target className="w-8 h-8 relative z-10" style={{ color: BRAND }} />
         </div>
-        
+
         <div className="flex flex-col gap-6 w-full">
           {navItems.map((item) => {
             const isActive = location === item.href;
@@ -48,7 +49,7 @@ export function AppShell({ children }: AppShellProps) {
                   style={isActive ? { backgroundColor: `${BRAND}1a` } : {}}
                 >
                   <item.icon
-                    className="w-5 h-5 md:w-6 md:h-6 transition-colors"
+                    className="w-5 h-5 lg:w-6 lg:h-6 transition-colors"
                     strokeWidth={isActive ? 2.5 : 1.5}
                     style={{ color: isActive ? BRAND : undefined }}
                   />
@@ -57,10 +58,9 @@ export function AppShell({ children }: AppShellProps) {
             );
           })}
         </div>
-        
+
         <div className="mt-auto">
           <div className="w-10 h-10 rounded-full bg-secondary border border-border/50 flex items-center justify-center cursor-pointer transition-colors"
-            style={{ borderColor: undefined }}
             onMouseEnter={e => (e.currentTarget.style.borderColor = `${BRAND}80`)}
             onMouseLeave={e => (e.currentTarget.style.borderColor = "")}
           >
@@ -69,10 +69,38 @@ export function AppShell({ children }: AppShellProps) {
         </div>
       </nav>
 
-      {/* Main Content Area */}
-      <main className="flex-1 relative h-full flex flex-col overflow-hidden">
+      {/* ── Main Content Area ── */}
+      <main className="flex-1 relative h-full flex flex-col overflow-hidden min-w-0 pb-14 md:pb-0">
         {children}
       </main>
+
+      {/* ── Bottom Navigation Bar (mobile only) ── */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border/50 flex items-center justify-around px-2 h-14 shrink-0">
+        {navItems.map((item) => {
+          const isActive = location === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              data-testid={`nav-bottom-${item.href.replace("/", "") || "home"}`}
+              className="flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-all"
+              style={isActive ? { backgroundColor: `${BRAND}1a` } : {}}
+            >
+              <item.icon
+                className="w-5 h-5 transition-colors"
+                strokeWidth={isActive ? 2.5 : 1.5}
+                style={{ color: isActive ? BRAND : "hsl(var(--muted-foreground))" }}
+              />
+              <span
+                className="text-[9px] font-mono font-medium tracking-wide"
+                style={{ color: isActive ? BRAND : "hsl(var(--muted-foreground))" }}
+              >
+                {item.label.toUpperCase()}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }
