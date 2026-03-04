@@ -1,0 +1,225 @@
+App Name: Reactive Implications
+Goal:
+Build a professional global risk intelligence dashboard web application similar to worldmonitor.app. The application should be map-first, showing global events with layers, filters, and AI-assisted strategic analysis.
+The platform is used for strategic risk oversight, geopolitical monitoring, and decision support.
+Technology Stack (must follow)
+Frontend
+React
+Vite
+TypeScript
+TailwindCSS
+Map
+MapLibre GL JS (open-source Mapbox alternative)
+Backend
+Node.js
+Express
+Data
+Seed data stored locally as JSON
+Designed so APIs can later connect to external data feeds
+Main Pages
+1. Global Situation (Default Page)
+Full screen interactive map.
+Features:
+Interactive world map using MapLibre.
+Event markers:
+colored by severity
+clustering when zoomed out
+Filters panel (left side):
+event layers
+severity
+category
+confidence
+Layers include:
+conflicts
+military activity
+sanctions
+economic disruptions
+infrastructure outages
+natural disasters
+trade chokepoints
+strategic hotspots
+Top bar:
+Search events or countries
+Time window selector (user controlled):
+24h
+48h
+5d
+7d
+Selected time window filters events shown on map.
+2. Global Insights
+A briefing dashboard summarizing the most important developments in the selected time window.
+Sections include:
+Key Developments
+Emerging Risks
+Stabilizing Signals
+Regional Shifts
+Trend indicators
+Insights are generated from event data.
+3. Country Instability
+Table and map overlay showing instability scores.
+Columns:
+Country
+Instability Score (0-100)
+7-day momentum change
+Primary drivers
+Confidence level
+Clicking a country:
+filters map events
+opens a country profile panel
+4. Strategic Risk Oversight
+Executive risk dashboard.
+Includes:
+Risk register
+Probability × Impact matrix
+Risk categories:
+Geopolitical
+Economic
+Energy
+Cyber
+Supply chain
+Climate
+Each risk shows:
+probability
+impact
+time horizon
+trigger signals
+5. Sector Heat Map
+Heat map grid showing Sector × Region risk exposure.
+Example sectors:
+Energy
+Finance
+Transport
+Technology
+Manufacturing
+Agriculture
+Defense
+Telecommunications
+Regions:
+North America
+Europe
+Middle East
+Africa
+Asia Pacific
+Latin America
+Clicking a cell reveals events driving the risk.
+Event Drawer (Right Panel)
+Clicking a map marker opens a detailed event drawer.
+Drawer includes:
+Event title
+Location
+Time
+Category
+Severity
+Confidence
+Sources
+Button:
+Analyze Implications
+AI Analysis System
+When user clicks Analyze Implications, backend endpoint is called.
+Endpoint:
+POST /api/ai/analyze
+Input:
+event_id
+optional portfolio context
+Response must be structured JSON.
+Analysis Sections
+① Intelligence & Causal Chain
+Historical analogues
+Causal chain
+Live signal indicators
+Portfolio impact
+JSON structure:
+historical_analogues:
+[
+title
+year
+similarity_score
+rationale
+]
+
+causal_chain:
+[
+order
+claim
+probability
+time_horizon
+evidence_signals
+]
+
+live_indicators:
+[
+indicator_name
+status
+threshold
+note
+]
+
+portfolio_impact:
+[
+asset_or_business
+impact_type
+magnitude
+pathway
+]
+② Action Framework
+Actions categorized into three tiers:
+No Regrets
+Study Now / Decide Fast
+Monitor / Conditional
+Each action tagged as:
+opportunity
+mitigant
+or both
+Includes:
+owner_role
+deadline
+trigger (if conditional)
+③ Preemptive Playbook
+Identify low-cost actions that could have improved outcomes if implemented before the event.
+Each includes:
+pre_event_action
+cost_complexity
+counterfactual outcome
+Backend Endpoints
+GET /api/events?timeWindow=24h
+GET /api/countries
+GET /api/sectors
+POST /api/ai/analyze
+POST /api/insights/generate
+Seed Data
+Create realistic sample data.
+Events:
+50 global events
+Fields:
+id
+title
+description
+category
+severity (1-5)
+confidence (0-1)
+latitude
+longitude
+timestamp
+sources
+Countries:
+30 countries with instability scores.
+Sectors:
+8 sectors × 6 regions risk scores.
+UI Design
+Professional intelligence dashboard.
+Dark theme default.
+Layout:
+Top bar navigation
+Left floating filter panel
+Full screen map
+Right event drawer
+Bottom mini timeline chart showing event volume.
+Smooth animations.
+Fast loading.
+Deliverables
+Application runs immediately after install.
+Single run command.
+Frontend and backend integrated.
+Clean modular code.
+No placeholder UI elements.
+All interactive features functional.
