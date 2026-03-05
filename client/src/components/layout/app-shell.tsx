@@ -24,9 +24,12 @@ export function AppShell({ children }: AppShellProps) {
 
       {/* ── Left Navigation Rail (tablet+) ── */}
       <nav className="hidden md:flex w-16 lg:w-20 border-r border-border/50 bg-card/50 backdrop-blur-md flex-col items-center py-6 z-50 shrink-0">
-        <div className="mb-8 relative group cursor-pointer">
-          <div className="absolute inset-0 blur-xl rounded-full transition-all" style={{ backgroundColor: `${BRAND}33` }} />
-          <Target className="w-8 h-8 relative z-10" style={{ color: BRAND }} />
+        <div className="mb-8 flex flex-col items-center gap-2">
+          <div className="relative group cursor-pointer">
+            <div className="absolute inset-0 blur-xl rounded-full transition-all" style={{ backgroundColor: `${BRAND}33` }} />
+            <Target className="w-8 h-8 relative z-10" style={{ color: BRAND }} />
+          </div>
+          <span className="font-mono text-[9px] font-bold tracking-[0.2em] leading-none" style={{ color: BRAND }}>MIRSAD</span>
         </div>
 
         <div className="flex flex-col gap-6 w-full">
