@@ -7,10 +7,11 @@ Reactive Implications is a professional global risk intelligence dashboard web a
 The application displays global events on an interactive map, categorized by severity, filtered by event type and time window, and enriched with AI-generated analysis. It is designed for strategic analysts who need real-time situational awareness across conflicts, military activity, cyber threats, economic disruptions, infrastructure failures, and trade chokepoints.
 
 **Key pages:**
-- **Global Situation** (`/`) — Full-screen map with event markers, clustering, filters, and AI event analysis
+- **Global Situation** (`/`) — Full-screen MapLibre GL map with event markers, clustering, filters, and AI event analysis
 - **Intelligence Brief** (`/insights`) — AI-generated strategic briefing synthesis for a selected time window
 - **Country Instability** (`/countries`) — Ranked table of nation-state instability scores with momentum indicators
 - **Sector Heatmap** (`/sectors`) — Cross-matrix risk scores by industry vertical and geopolitical region
+- **Strategic Oversight** (`/oversight`) — Card grid of high-severity events requiring immediate attention
 
 ---
 
@@ -40,12 +41,12 @@ Preferred communication style: Simple, everyday language.
 
 ### Backend Architecture
 
-- **Python 3.11 + FastAPI** — REST API server (`server.py` in project root)
-- **Development** — FastAPI runs on port 8000; Vite dev server runs on port 5000 and proxies `/api/*` requests to FastAPI via vite.config.ts proxy config. Both started via `start.sh`.
-- **Production** — FastAPI runs on port 5000 (the only exposed port) and serves the Vite-built static client from `dist/public/` via `StaticFiles`.
-- **Startup** — `bash start.sh` launches both uvicorn (Python, port 8000) and Vite (port 5000) in development.
-- **API routes** — Defined directly in `server.py` using FastAPI route decorators. Route paths match those in `shared/routes.ts`.
-- **Response serialization** — Snake_case DB columns are mapped to camelCase in row helper functions (`row_to_event`, `row_to_country`, `row_to_sector`).
+- **Node.js + Express 5** — REST API server, also serves the Vite-built static client in production
+- **Development** — Vite dev server runs as Express middleware via `server/vite.ts`, enabling HMR
+- **Production** — Client built to `dist/public/`, served as static files by Express
+- **Build** — Custom `script/build.ts` using esbuild for server bundling and Vite for client bundling. Server deps in an allowlist are bundled together to reduce cold-start overhead.
+- **API routes** — Registered in `server/routes.ts`. Route paths and Zod response schemas are defined in `shared/routes.ts`, shared between client and server for type-safe fetching.
+- **Logging** — Simple request logger in `server/index.ts` that logs method, path, status, and duration for all `/api` calls.
 
 ### Shared Schema Layer
 
@@ -55,10 +56,10 @@ Preferred communication style: Simple, everyday language.
 
 ### Data Storage
 
-- **PostgreSQL** accessed from Python via `psycopg2-binary` with `RealDictCursor` for dict-like row access
-- **Drizzle ORM** still used for schema definition (`shared/schema.ts`) and migrations, but queries in production are raw SQL via psycopg2
-- **Seed data** — 78 geopolitical events seeded directly in DB. Countries (30) and sector risks (50) also seeded.
-- **JSONB fields** — `sources` (events) and `primary_drivers` (countries) stored as JSONB; psycopg2 automatically deserializes these to Python lists.
+- **PostgreSQL** via `drizzle-orm/node-postgres` with a `pg.Pool`
+- **Drizzle ORM** — Schema-first, type-safe query builder. Migrations in `./migrations/`, schema in `shared/schema.ts`
+- **`DatabaseStorage` class** (`server/storage.ts`) — Implements `IStorage` interface for events, countries, and sector risks. Time-window filtering is done with a `gte` clause on `events.timestamp`.
+- **Seed data** — `SEED_EVENTS` array hardcoded in `server/routes.ts` with ~28 geopolitical events. Seeded on app startup if DB is empty.
 - **DATABASE_URL** env var required. Will throw on startup if missing.
 
 ### AI Integration
