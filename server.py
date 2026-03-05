@@ -99,6 +99,33 @@ def list_events(timeWindow: Optional[str] = Query(None)):
     return [row_to_event(r) for r in rows]
 
 
+@app.get("/api/debug")
+def debug_info():
+    conn = get_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT NOW() AS db_now, COUNT(*) AS total FROM events")
+            row = cur.fetchone()
+            db_now = row["db_now"]
+            total = row["total"]
+            counts = {}
+            for label, hours in {"24h": 24, "48h": 48, "5d": 120, "7d": 168}.items():
+                cur.execute(
+                    "SELECT COUNT(*) AS c FROM events WHERE timestamp >= NOW() - %s * INTERVAL '1 hour'",
+                    (hours,),
+                )
+                counts[label] = cur.fetchone()["c"]
+    finally:
+        conn.close()
+    return {
+        "db_now": db_now.isoformat(),
+        "node_env": NODE_ENV,
+        "total_events": total,
+        "by_window": counts,
+        "database_url_prefix": DATABASE_URL[:30] if DATABASE_URL else None,
+    }
+
+
 @app.get("/api/events/{event_id}")
 def get_event(event_id: int):
     conn = get_conn()
