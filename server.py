@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -258,10 +258,25 @@ def generate_insights(body: InsightsRequest):
         raise HTTPException(status_code=500, detail="Internal Error")
 
 
-if NODE_ENV == "production":
-    static_dir = os.path.join(os.path.dirname(__file__), "dist", "public")
-    if os.path.exists(static_dir):
-        app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dist", "public")
+ASSETS_DIR = os.path.join(STATIC_DIR, "assets")
+
+if NODE_ENV == "production" and os.path.exists(ASSETS_DIR):
+    app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
+
+
+@app.get("/{full_path:path}")
+def serve_spa(full_path: str):
+    if NODE_ENV != "production":
+        raise HTTPException(status_code=404, detail="Not found")
+    file_path = os.path.join(STATIC_DIR, full_path)
+    if full_path and os.path.isfile(file_path):
+        return FileResponse(file_path)
+    index = os.path.join(STATIC_DIR, "index.html")
+    if os.path.isfile(index):
+        return FileResponse(index)
+    raise HTTPException(status_code=404, detail="Not found")
+
 
 if __name__ == "__main__":
     import uvicorn
