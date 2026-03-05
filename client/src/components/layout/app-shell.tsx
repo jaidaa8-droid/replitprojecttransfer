@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { Globe, Activity, ShieldAlert, Target, PieChart, Database, Map } from "lucide-react";
+import { Globe, Activity, Target, PieChart, Database, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const BRAND = "#005C4D";
@@ -17,7 +17,6 @@ export function AppShell({ children }: AppShellProps) {
     { href: "/insights", icon: Activity, label: "Brief" },
     { href: "/countries", icon: Globe, label: "Nations" },
     { href: "/sectors", icon: PieChart, label: "Sectors" },
-    { href: "/oversight", icon: ShieldAlert, label: "Oversight" },
   ];
 
   return (
