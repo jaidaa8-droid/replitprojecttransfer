@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Activity, RefreshCw, TrendingUp, AlertTriangle, Globe } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { useGenerateInsights } from "@/hooks/use-ai";
@@ -9,11 +8,11 @@ export default function GlobalInsights() {
   
   return (
     <AppShell>
-      <div className="h-full flex flex-col p-6 md:p-8 overflow-hidden bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat relative">
+      <div className="h-full flex flex-col bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat relative overflow-hidden">
         <div className="absolute inset-0 bg-background/90 backdrop-blur-sm z-0" />
         
-        <div className="relative z-10 flex-1 flex flex-col">
-          <header className="flex flex-col sm:flex-row gap-3 sm:items-end mb-4 md:mb-8">
+        <div className="relative z-10 flex flex-col min-h-0 flex-1">
+          <header className="flex flex-col sm:flex-row gap-3 sm:items-end p-6 md:p-8 pb-0 shrink-0">
             <div className="flex-1">
               <h1 className="text-xl md:text-3xl font-display font-bold text-foreground">STRATEGIC INTELLIGENCE BRIEF</h1>
               <p className="text-muted-foreground font-mono mt-1 text-xs md:text-sm">SYSTEM GENERATED SYNTHESIS // CONFIDENTIAL</p>
@@ -29,7 +28,7 @@ export default function GlobalInsights() {
             </Button>
           </header>
 
-          <div className="flex-1 overflow-auto pr-4 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto min-h-0 px-6 md:px-8 py-4 md:py-6 custom-scrollbar">
             {!generateMutation.data && !generateMutation.isPending && (
               <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">
                 <Globe className="w-16 h-16 mb-4 opacity-20" />
