@@ -1,6 +1,6 @@
 import os
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query
@@ -87,10 +87,9 @@ def list_events(timeWindow: Optional[str] = Query(None)):
             if timeWindow:
                 hours_map = {"24h": 24, "48h": 48, "5d": 120, "7d": 168}
                 hours = hours_map.get(timeWindow, 24)
-                threshold = datetime.utcnow() - timedelta(hours=hours)
                 cur.execute(
-                    "SELECT * FROM events WHERE timestamp >= %s ORDER BY timestamp DESC",
-                    (threshold,),
+                    "SELECT * FROM events WHERE timestamp >= NOW() - %s * INTERVAL '1 hour' ORDER BY timestamp DESC",
+                    (hours,),
                 )
             else:
                 cur.execute("SELECT * FROM events ORDER BY timestamp DESC")
@@ -210,10 +209,9 @@ def generate_insights(body: InsightsRequest):
             if body.timeWindow:
                 hours_map = {"24h": 24, "48h": 48, "5d": 120, "7d": 168}
                 hours = hours_map.get(body.timeWindow, 24)
-                threshold = datetime.utcnow() - timedelta(hours=hours)
                 cur.execute(
-                    "SELECT * FROM events WHERE timestamp >= %s ORDER BY timestamp DESC",
-                    (threshold,),
+                    "SELECT * FROM events WHERE timestamp >= NOW() - %s * INTERVAL '1 hour' ORDER BY timestamp DESC",
+                    (hours,),
                 )
             else:
                 cur.execute("SELECT * FROM events ORDER BY timestamp DESC")
