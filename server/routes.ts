@@ -6,6 +6,8 @@ import { z } from "zod";
 import OpenAI from "openai";
 import { fetchAndIngestNews, startNewsFetchScheduler } from "./news-fetcher";
 import { events, countries, sectorRisks } from "@shared/schema";
+import { db } from "./db";
+import { sql } from "drizzle-orm";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -161,6 +163,11 @@ const SECTOR_BASE: Record<string, number[]> = {
 };
 
 async function seedDatabase() {
+  // Re-geocode any events mistakenly placed at Saudi Arabia/Riyadh coords → UAE/Dubai
+  await db.execute(
+    sql`UPDATE events SET latitude = 25.20, longitude = 55.27 WHERE latitude BETWEEN 24.6 AND 24.8 AND longitude BETWEEN 46.6 AND 46.9`
+  );
+
   const allTitles = await storage.getAllEventTitles();
 
   // One-time migration: if any fictional events detected, purge all seeded events
