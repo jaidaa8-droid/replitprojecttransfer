@@ -105,9 +105,17 @@ For each headline, return an event object with:
 - category: one of exactly ["Conflicts", "Military activity", "Cyber", "Energy", "Economic", "Political", "Strategic hotspots", "Humanitarian"]
 - severity: integer 1-5 (1=minor, 5=critical)
 - confidence: float 0.90-1.0 (use high confidence for confirmed real news)
-- latitude: float (primary geographic focal point)
-- longitude: float (primary geographic focal point)
+- latitude: float — the location of the PRIMARY ACTOR or subject named in the headline, NOT the conflict they are responding to. If the headline is about Saudi Arabia reacting to a war, use Saudi Arabia's coordinates. If about Gulf states, use the Gulf. If about Houthis, use Yemen.
+- longitude: float — same rule as latitude
 - sources: array of strings (source names, max 3)
+
+GEOCODING REFERENCE (use exact values when these countries/cities are the primary subject):
+Saudi Arabia / Riyadh: 24.69, 46.72 | UAE / Dubai: 25.20, 55.27 | Qatar / Doha: 25.29, 51.53
+Kuwait: 29.37, 47.98 | Bahrain / Manama: 26.22, 50.59 | Oman / Muscat: 23.59, 58.39
+Yemen / Sanaa: 15.37, 44.19 | Iraq / Baghdad: 33.34, 44.40 | Jordan / Amman: 31.95, 35.93
+Iran / Tehran: 35.69, 51.39 | Israel / Tel Aviv: 32.07, 34.78 | Lebanon / Beirut: 33.89, 35.50
+Syria / Damascus: 33.51, 36.29 | Turkey / Ankara: 39.93, 32.86 | Egypt / Cairo: 30.06, 31.25
+Strait of Hormuz: 26.56, 56.25 | Red Sea: 20.00, 38.00 | Arabian Sea: 15.00, 65.00
 
 Return a JSON object with key "events" containing an array of classified events. Skip non-geopolitical headlines.
 
@@ -179,14 +187,24 @@ export async function fetchAndIngestNews(): Promise<{ added: number; skipped: nu
       });
       return !exactMatch && !wordOverlapMatch;
     });
-    console.log(`[news-fetcher] after dedup: ${newHeadlines.length} new headlines, ${allHeadlines.length - newHeadlines.length} deduped`);
-    if (newHeadlines.length > 0) {
-      console.log(`[news-fetcher] new:`, newHeadlines.slice(0,3).map(h => h.title));
+
+    // Prioritize Gulf/Saudi/Arabian Peninsula stories so they are never pushed beyond the batch limit
+    const GULF_PRIORITY = ["saudi", "gulf", "riyadh", "aramco", "gcc", "opec", "uae", "dubai", "qatar", "doha", "kuwait", "bahrain", "oman", "houthi", "red sea", "hormuz", "arabian"];
+    const isGulfStory = (h: { title: string; description: string }) =>
+      GULF_PRIORITY.some(kw => (h.title + " " + h.description).toLowerCase().includes(kw));
+    const prioritised = [
+      ...newHeadlines.filter(isGulfStory),
+      ...newHeadlines.filter(h => !isGulfStory(h)),
+    ];
+
+    console.log(`[news-fetcher] after dedup: ${prioritised.length} new headlines, ${allHeadlines.length - newHeadlines.length} deduped`);
+    if (prioritised.length > 0) {
+      console.log(`[news-fetcher] new:`, prioritised.slice(0,3).map(h => h.title));
     }
 
-    if (newHeadlines.length === 0) return { added: 0, skipped: allHeadlines.length };
+    if (prioritised.length === 0) return { added: 0, skipped: allHeadlines.length };
 
-    const classified = await classifyHeadlinesWithAI(newHeadlines.slice(0, 15));
+    const classified = await classifyHeadlinesWithAI(prioritised.slice(0, 20));
 
     for (const event of classified) {
       if (!event.title || event.title.length < 5) { skipped++; continue; }
