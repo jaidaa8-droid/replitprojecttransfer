@@ -135,7 +135,6 @@ const SEED_COUNTRIES = [
   { code: "IND", name: "India", instabilityScore: 58, momentumChange: "+14", primaryDrivers: ["India-Pakistan nuclear doctrine exchange", "Aircraft carrier deployed to Arabian Sea", "Cross-border artillery duel"], confidenceLevel: "High" },
   { code: "MEX", name: "Mexico", instabilityScore: 55, momentumChange: "+10", primaryDrivers: ["Cartel emergency — army deployed nationwide", "Border crossing seizures", "US tariff pressure"], confidenceLevel: "High" },
   { code: "ARG", name: "Argentina", instabilityScore: 54, momentumChange: "+3", primaryDrivers: ["Hyperinflation persists", "IMF conditions unmet risk", "Social unrest"], confidenceLevel: "High" },
-  { code: "SAU", name: "Saudi Arabia", instabilityScore: 72, momentumChange: "+12", primaryDrivers: ["Houthi ballistic missile campaign against Saudi territory", "Iran war proximity threatens Aramco infrastructure", "Red Sea shipping routes severely disrupted"], confidenceLevel: "High" },
   { code: "ARE", name: "UAE", instabilityScore: 64, momentumChange: "+9", primaryDrivers: ["Iran war disrupts Dubai air and maritime hub", "Strait of Hormuz oil shipping under direct threat", "Regional escalation forces diplomatic repositioning"], confidenceLevel: "High" },
   { code: "QAT", name: "Qatar", instabilityScore: 61, momentumChange: "+7", primaryDrivers: ["US Al-Udeid Air Base at centre of Iran war operations", "Iran war threatens LNG export shipping routes", "Hamas-Israel mediation under severe strain"], confidenceLevel: "High" },
 ];
@@ -179,12 +178,9 @@ async function seedDatabase() {
     storage.getSectorRisks(),
   ]);
 
-  // Always replace all countries with current seed values (ensures scores stay up to date)
-  const seedCodes = new Set(SEED_COUNTRIES.map(c => c.code));
+  // Rebuild countries from seed: delete all existing, then re-insert current seeds
   for (const existing of existingCountries) {
-    if (seedCodes.has(existing.code) || existing.confidenceLevel === "Medium" || existing.confidenceLevel === "Low") {
-      await storage.deleteCountry(existing.code);
-    }
+    await storage.deleteCountry(existing.code);
   }
   for (const c of SEED_COUNTRIES) {
     await storage.createCountry(c);
