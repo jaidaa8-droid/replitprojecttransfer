@@ -139,6 +139,16 @@ export const api = {
       },
     },
   },
+  news: {
+    refresh: {
+      method: "POST" as const,
+      path: "/api/news/refresh" as const,
+      responses: {
+        200: z.object({ added: z.number(), skipped: z.number() }),
+        500: errorSchemas.internal,
+      },
+    },
+  },
   ai: {
     analyze: {
       method: "POST" as const,

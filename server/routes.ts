@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import OpenAI from "openai";
+import { fetchAndIngestNews, startNewsFetchScheduler } from "./news-fetcher";
 import { events, countries, sectorRisks } from "@shared/schema";
 
 const openai = new OpenAI({
@@ -351,6 +352,17 @@ Return strictly a JSON object matching:
       res.status(500).json({ message: "Internal Error" });
     }
   });
+
+  app.post(api.news.refresh.path, async (_req, res) => {
+    try {
+      const result = await fetchAndIngestNews();
+      res.json(result);
+    } catch {
+      res.status(500).json({ message: "Failed to refresh news" });
+    }
+  });
+
+  startNewsFetchScheduler();
 
   return httpServer;
 }

@@ -4,10 +4,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 import {
   Search, X, Zap, ArrowRight, BrainCircuit, Crosshair,
-  Activity, ChevronLeft, Filter, Clock, RefreshCw, Layers
+  Activity, ChevronLeft, Filter, Clock, RefreshCw, Layers, Radio
 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
 import { useEvents } from "@/hooks/use-events";
 import { useAnalyzeEvent } from "@/hooks/use-ai";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { api } from "@shared/routes";
 import { AppShell } from "@/components/layout/app-shell";
 import { SeverityBadge, ConfidenceMeter } from "@/components/ui/severity-badge";
 import { Button } from "@/components/ui/button";
@@ -51,6 +54,13 @@ export default function GlobalSituation() {
   const [feedOpen, setFeedOpen] = useState(true);
 
   const { data: events = [], isLoading, isFetching, refetch } = useEvents(timeWindow);
+
+  const fetchLiveNews = useMutation({
+    mutationFn: () => apiRequest(api.news.refresh.path, { method: "POST" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.events.list.path] });
+    },
+  });
 
   const filteredEvents = useMemo(() => {
     return events.filter(e => {
@@ -202,17 +212,29 @@ export default function GlobalSituation() {
               <span className="text-[10px] font-mono text-muted-foreground">
                 {filteredEvents.length}/{events.length}
               </span>
-              <button
-                data-testid="button-refresh-feed"
-                onClick={() => refetch()}
-                disabled={isFetching}
-                className="ml-auto p-1.5 rounded-md hover:bg-secondary/60 transition-colors disabled:opacity-50"
-                title="Refresh feed"
-              >
-                <RefreshCw
-                  className={`w-3.5 h-3.5 text-primary ${isFetching ? "animate-spin" : ""}`}
-                />
-              </button>
+                <div className="ml-auto flex items-center gap-1">
+                <button
+                  data-testid="button-fetch-live-news"
+                  onClick={() => fetchLiveNews.mutate()}
+                  disabled={fetchLiveNews.isPending}
+                  className="flex items-center gap-1 px-2 py-1 text-[10px] font-mono rounded border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+                  title="Fetch live news from RSS feeds"
+                >
+                  <Radio className={`w-3 h-3 ${fetchLiveNews.isPending ? "animate-pulse" : ""}`} />
+                  {fetchLiveNews.isPending ? "FETCHING..." : "LIVE"}
+                </button>
+                <button
+                  data-testid="button-refresh-feed"
+                  onClick={() => refetch()}
+                  disabled={isFetching}
+                  className="p-1.5 rounded-md hover:bg-secondary/60 transition-colors disabled:opacity-50"
+                  title="Refresh feed"
+                >
+                  <RefreshCw
+                    className={`w-3.5 h-3.5 text-muted-foreground ${isFetching ? "animate-spin" : ""}`}
+                  />
+                </button>
+              </div>
             </div>
 
             {/* Search */}

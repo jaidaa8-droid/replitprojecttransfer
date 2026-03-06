@@ -24,6 +24,7 @@ export function useEvents(timeWindow?: "24h" | "48h" | "5d" | "7d") {
       const data = await res.json();
       return parseWithLogging(api.events.list.responses[200], data, "events.list");
     },
+    refetchInterval: 5 * 60 * 1000,
   });
 }
 
