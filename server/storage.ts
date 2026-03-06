@@ -15,6 +15,7 @@ import { eq, gte, and } from "drizzle-orm";
 export interface IStorage {
   // Events
   getEvents(timeWindow?: string): Promise<Event[]>;
+  getAllEventTitles(): Promise<string[]>;
   getEvent(id: number): Promise<Event | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
   
@@ -44,6 +45,11 @@ export class DatabaseStorage implements IStorage {
     }
 
     return await db.select().from(events).where(minConfidence);
+  }
+
+  async getAllEventTitles(): Promise<string[]> {
+    const rows = await db.select({ title: events.title }).from(events);
+    return rows.map(r => r.title);
   }
 
   async getEvent(id: number): Promise<Event | undefined> {
