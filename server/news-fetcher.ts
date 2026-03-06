@@ -117,10 +117,13 @@ Iran / Tehran: 35.69, 51.39 | Israel / Tel Aviv: 32.07, 34.78 | Lebanon / Beirut
 Syria / Damascus: 33.51, 36.29 | Turkey / Ankara: 39.93, 32.86 | Egypt / Cairo: 30.06, 31.25
 Strait of Hormuz: 26.56, 56.25 | Red Sea: 20.00, 38.00 | Arabian Sea: 15.00, 65.00
 
+Also include in each event object:
+- pubDate: string — copy the pubDate value EXACTLY as given for that headline (do not modify it)
+
 Return a JSON object with key "events" containing an array of classified events. Skip non-geopolitical headlines.
 
 Headlines:
-${headlines.map((h, i) => `${i + 1}. [${h.source}] ${h.title}\n   ${h.description}`).join("\n\n")}`;
+${headlines.map((h, i) => `${i + 1}. [${h.source}] pubDate: ${h.pubDate || "unknown"}\n   ${h.title}\n   ${h.description}`).join("\n\n")}`;
 
   try {
     console.log(`[news-fetcher] calling GPT for ${headlines.length} headlines...`);
@@ -136,17 +139,25 @@ ${headlines.map((h, i) => `${i + 1}. [${h.source}] ${h.title}\n   ${h.descriptio
     const parsed = JSON.parse(content);
     const arr: RawEvent[] = Array.isArray(parsed) ? parsed : (parsed.events || parsed.data || parsed.results || []);
 
-    return arr.map((e: any) => ({
-      title: String(e.title || "").slice(0, 100),
-      description: String(e.description || ""),
-      category: e.category || "Political",
-      severity: Math.min(5, Math.max(1, Number(e.severity) || 3)),
-      confidence: Math.min(1, Math.max(0, Number(e.confidence) || 0.7)),
-      latitude: Number(e.latitude) || 0,
-      longitude: Number(e.longitude) || 0,
-      timestamp: new Date(),
-      sources: Array.isArray(e.sources) ? e.sources.slice(0, 3) : ["News Feed"],
-    }));
+    return arr.map((e: any) => {
+      // Use the article's actual publication date; fall back to now if unparseable
+      let timestamp = new Date();
+      if (e.pubDate && e.pubDate !== "unknown") {
+        const parsed = new Date(e.pubDate);
+        if (!isNaN(parsed.getTime())) timestamp = parsed;
+      }
+      return {
+        title: String(e.title || "").slice(0, 100),
+        description: String(e.description || ""),
+        category: e.category || "Political",
+        severity: Math.min(5, Math.max(1, Number(e.severity) || 3)),
+        confidence: Math.min(1, Math.max(0, Number(e.confidence) || 0.7)),
+        latitude: Number(e.latitude) || 0,
+        longitude: Number(e.longitude) || 0,
+        timestamp,
+        sources: Array.isArray(e.sources) ? e.sources.slice(0, 3) : ["News Feed"],
+      };
+    });
   } catch (err: any) {
     console.error("[news-fetcher] GPT error:", err?.status, err?.message, err?.code, JSON.stringify(err?.error || {}));
     return [];
