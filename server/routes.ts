@@ -81,8 +81,15 @@ const SEED_EVENTS = [
   // 5-day window
   { title: "Heavy Fighting Reported Along Israel-Lebanon Border as Ceasefire Collapses", description: "BBC journalists report heavy gunfire along the Israel-Lebanon border as the November 2024 ceasefire between Israel and Hezbollah effectively collapses. Cross-border exchanges involve anti-tank missiles, drones and artillery on both sides of the Blue Line frontier.", category: "Military activity", severity: 5, confidence: 0.97, latitude: 33.28, longitude: 35.57, timestamp: h(47), sources: ["BBC World", "Al Jazeera", "AFP"] },
   { title: "US-Israel Airstrikes Across Iran Documented at Scale", description: "Footage from multiple cities across Iran documents the scale of ongoing US-Israeli airstrikes on Iranian military installations, missile storage sites and nuclear-related infrastructure. Strikes have been confirmed in Tehran, Isfahan, Natanz, Bushehr and Tabriz. International humanitarian agencies warn of civilian casualties.", category: "Military activity", severity: 5, confidence: 0.97, latitude: 32.43, longitude: 53.69, timestamp: h(51), sources: ["BBC World", "Al Jazeera", "Reuters"] },
-  // 7-day window
+  // 5-day window (events ~4–5 days ago, h(96)–h(119))
   { title: "Strait of Hormuz Shipping Traffic Plummets as Iran War Disrupts Oil Routes", description: "A timelapse analysis of maritime tracking data shows shipping traffic through the Strait of Hormuz has dropped sharply as the US-Israel military campaign against Iran disrupts the world's most critical oil chokepoint. Major tanker operators suspend bookings. Brent crude surges past $110 per barrel.", category: "Trade chokepoints", severity: 5, confidence: 0.97, latitude: 26.56, longitude: 56.25, timestamp: h(100), sources: ["BBC World", "Lloyd's List", "Bloomberg"] },
+  { title: "Iran Fires Ballistic Missiles at Haifa and Tel Aviv in Opening Retaliation", description: "Iran's IRGC launches a salvo of ballistic missiles targeting Haifa and Tel Aviv in the first Iranian retaliatory strike after the US-Israel campaign began. Israel's Arrow-3 and Iron Dome systems intercept the majority; limited impact reported in Haifa's port district.", category: "Military activity", severity: 5, confidence: 0.97, latitude: 32.08, longitude: 34.78, timestamp: h(108), sources: ["Al Jazeera", "BBC World", "Reuters"] },
+  { title: "Operation Epic Fury: US-Israel Launch Opening Strikes on Iran Nuclear Sites", description: "US B-2 stealth bombers and Israeli F-35s conduct coordinated strikes on Iran's nuclear enrichment facilities at Natanz, Fordow and Isfahan in the opening night of what Pentagon officials call Operation Epic Fury. The strikes mark the beginning of an open military campaign against Iran's nuclear programme.", category: "Military activity", severity: 5, confidence: 0.97, latitude: 32.43, longitude: 53.69, timestamp: h(116), sources: ["BBC World", "Al Jazeera", "Reuters"] },
+  // 7-day window (events ~5–7 days ago, h(120)–h(167))
+  { title: "USS Gerald R. Ford Carrier Strike Group Ordered to Persian Gulf as Iran Standoff Escalates", description: "The US Navy orders the USS Gerald R. Ford carrier strike group to the Persian Gulf as the diplomatic standoff with Iran over its nuclear programme reaches a critical point. The deployment signals Washington's readiness to use military force if negotiations collapse.", category: "Military activity", severity: 4, confidence: 0.97, latitude: 26.5, longitude: 56.0, timestamp: h(130), sources: ["Reuters", "BBC World", "US CENTCOM"] },
+  { title: "US Congress Briefed on Imminent Military Action Against Iran's Nuclear Programme", description: "Senior US administration officials brief Congressional leaders in a closed session on plans for military action against Iran's nuclear infrastructure. Lawmakers are informed that diplomatic options have been exhausted and that operational planning with Israel is complete.", category: "Political", severity: 4, confidence: 0.97, latitude: 38.89, longitude: -77.03, timestamp: h(148), sources: ["Reuters", "The Wall Street Journal", "BBC World"] },
+  { title: "Iran Vows 'Crushing Response' to Any US-Israeli Military Attack", description: "Iran's Supreme Leader Ali Khamenei warns that any US or Israeli military attack on Iranian soil will be met with a 'crushing and devastating response' targeting the full range of US assets in the Middle East. The statement comes amid a final breakdown in indirect diplomatic contacts.", category: "Strategic hotspots", severity: 5, confidence: 0.97, latitude: 35.69, longitude: 51.39, timestamp: h(158), sources: ["Al Jazeera", "Reuters", "AFP"] },
+  { title: "UN Security Council Emergency Session Fails to Prevent US-Iran Military Confrontation", description: "An emergency session of the UN Security Council called by Russia and China to prevent military action against Iran ends without agreement, as the US and UK veto a draft resolution demanding a halt to strike preparations. Diplomatic observers warn a military confrontation is now imminent.", category: "Diplomatic", severity: 4, confidence: 0.97, latitude: 40.75, longitude: -73.98, timestamp: h(165), sources: ["Reuters", "BBC World", "UN News"] },
 
   // Europe / NATO
   { title: "Finland Joins NATO as 31st Member", description: "Finland formally accedes to NATO, ending more than 75 years of military non-alignment. Triggered by Russia's 2022 invasion of Ukraine, Finland's accession doubles the length of NATO's land border with Russia, fundamentally reshaping the strategic map of northern Europe.", category: "Strategic hotspots", severity: 3, confidence: 0.99, latitude: 60.17, longitude: 24.93, timestamp: h(25608), sources: ["Reuters", "BBC", "NATO"] },
@@ -169,8 +176,13 @@ async function seedDatabase() {
 
   // Insert real seed events not already present (dedup by title)
   const missingEvents = SEED_EVENTS.filter(e => !currentTitles.has(e.title));
+  console.log(`[seed] inserting ${missingEvents.length} missing events (${SEED_EVENTS.length} total seeds, ${currentTitles.size} already in DB)`);
   for (const e of missingEvents) {
-    await storage.createEvent(e);
+    try {
+      await storage.createEvent(e);
+    } catch (err) {
+      console.error(`[seed] failed to insert "${e.title}":`, err);
+    }
   }
 
   const [existingCountries, existingSectors] = await Promise.all([
