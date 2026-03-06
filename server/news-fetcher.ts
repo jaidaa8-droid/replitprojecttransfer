@@ -192,9 +192,11 @@ export async function fetchAndIngestNews(): Promise<{ added: number; skipped: nu
     const newHeadlines = allHeadlines.filter(h => {
       const norm = h.title.toLowerCase().trim();
       const exactMatch = existingTitles.has(norm);
+      // Use 5-char stems so spelling variants (defence/defense, colour/color) match
+      const stems = norm.split(" ").filter(w => w.length > 4).map(w => w.slice(0, 5));
       const wordOverlapMatch = Array.from(existingTitles).some(t => {
-        const overlap = norm.split(" ").filter(w => w.length > 4 && t.includes(w)).length;
-        return overlap >= 3;
+        const matched = stems.filter(stem => t.includes(stem)).length;
+        return matched >= 2;
       });
       return !exactMatch && !wordOverlapMatch;
     });
