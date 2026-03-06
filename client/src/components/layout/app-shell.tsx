@@ -73,9 +73,9 @@ export function AppShell({ children }: AppShellProps) {
 
       {/* ── Main Content Area ── */}
       <main className="flex-1 relative h-full flex flex-col overflow-hidden min-w-0 pb-14 md:pb-0">
-        <div className="shrink-0 w-full bg-amber-950/60 border-b border-amber-700/40 px-4 py-1.5 flex items-center justify-center" data-testid="disclaimer-banner">
-          <span className="text-[11px] font-mono text-amber-400/80 tracking-wide text-center">
-            ⚠ This is an experimental tool; outputs may be inaccurate and are for testing only.
+        <div className="shrink-0 w-full px-4 py-1 flex items-center justify-center" data-testid="disclaimer-banner">
+          <span className="text-[10px] font-mono text-muted-foreground/40 tracking-wide text-center">
+            Experimental tool — outputs may be inaccurate and are for testing only.
           </span>
         </div>
         {children}
