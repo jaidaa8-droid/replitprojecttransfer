@@ -21,6 +21,7 @@ export interface IStorage {
   // Countries
   getCountries(): Promise<Country[]>;
   createCountry(country: InsertCountry): Promise<Country>;
+  deleteCountry(code: string): Promise<void>;
   
   // Sector Risks
   getSectorRisks(): Promise<SectorRisk[]>;
@@ -62,6 +63,10 @@ export class DatabaseStorage implements IStorage {
   async createCountry(country: InsertCountry): Promise<Country> {
     const [countriesResult] = await db.insert(countries).values(country).returning();
     return countriesResult;
+  }
+
+  async deleteCountry(code: string): Promise<void> {
+    await db.delete(countries).where(eq(countries.code, code));
   }
 
   async getSectorRisks(): Promise<SectorRisk[]> {

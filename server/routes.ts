@@ -155,49 +155,39 @@ const SEED_EVENTS = [
 ];
 
 const SEED_COUNTRIES = [
-  { code: "UKR", name: "Ukraine", instabilityScore: 88, momentumChange: "+4", primaryDrivers: ["Active conflict", "Infrastructure damage", "Economic collapse"], confidenceLevel: "High" },
-  { code: "SDN", name: "Sudan", instabilityScore: 87, momentumChange: "+6", primaryDrivers: ["Civil war", "RSF territorial control", "Humanitarian crisis"], confidenceLevel: "High" },
-  { code: "HTI", name: "Haiti", instabilityScore: 86, momentumChange: "+8", primaryDrivers: ["Gang control", "State collapse", "Food insecurity"], confidenceLevel: "High" },
-  { code: "SOM", name: "Somalia", instabilityScore: 83, momentumChange: "+2", primaryDrivers: ["Al-Shabaab", "Climate shocks", "Governance deficit"], confidenceLevel: "High" },
-  { code: "SYR", name: "Syria", instabilityScore: 81, momentumChange: "-1", primaryDrivers: ["Fragmented control", "Economic sanctions", "Regional proxy conflict"], confidenceLevel: "High" },
-  { code: "YEM", name: "Yemen", instabilityScore: 80, momentumChange: "+3", primaryDrivers: ["Houthi control", "Coalition airstrikes", "Famine risk"], confidenceLevel: "High" },
-  { code: "MMR", name: "Myanmar", instabilityScore: 79, momentumChange: "+5", primaryDrivers: ["Junta vs resistance", "Ethnic conflict", "Border instability"], confidenceLevel: "High" },
-  { code: "IRN", name: "Iran", instabilityScore: 72, momentumChange: "+3", primaryDrivers: ["Nuclear program", "IRGC proxy network", "Economic sanctions"], confidenceLevel: "High" },
-  { code: "PRK", name: "North Korea", instabilityScore: 70, momentumChange: "+2", primaryDrivers: ["ICBM program", "Sanctions evasion", "Regime opacity"], confidenceLevel: "Medium" },
-  { code: "ETH", name: "Ethiopia", instabilityScore: 68, momentumChange: "-3", primaryDrivers: ["Post-Tigray fragility", "Amhara insurgency", "Nile dam tensions"], confidenceLevel: "Medium" },
-  { code: "MLI", name: "Mali", instabilityScore: 67, momentumChange: "+4", primaryDrivers: ["Junta governance", "Sahel insurgency", "Wagner presence"], confidenceLevel: "Medium" },
-  { code: "COD", name: "Dem. Rep. Congo", instabilityScore: 66, momentumChange: "+2", primaryDrivers: ["M23 rebels", "Eastern front violence", "Resource curse"], confidenceLevel: "Medium" },
-  { code: "LBY", name: "Libya", instabilityScore: 64, momentumChange: "+1", primaryDrivers: ["Dual government", "Oil terminal blockades", "Mercenary activity"], confidenceLevel: "Medium" },
-  { code: "NGA", name: "Nigeria", instabilityScore: 62, momentumChange: "+3", primaryDrivers: ["Boko Haram north", "Delta insurgency", "Economic pressure"], confidenceLevel: "Medium" },
-  { code: "PAK", name: "Pakistan", instabilityScore: 60, momentumChange: "+2", primaryDrivers: ["Debt crisis", "TTP terrorism", "Civil-military tensions"], confidenceLevel: "Medium" },
-  { code: "TWN", name: "Taiwan", instabilityScore: 58, momentumChange: "+5", primaryDrivers: ["PLA military pressure", "Semiconductor dependency", "US-China proxy"], confidenceLevel: "High" },
-  { code: "ISR", name: "Israel", instabilityScore: 56, momentumChange: "+6", primaryDrivers: ["Gaza conflict", "Hezbollah northern front", "Domestic political crisis"], confidenceLevel: "High" },
-  { code: "VEN", name: "Venezuela", instabilityScore: 55, momentumChange: "+1", primaryDrivers: ["Election fraud", "Economic collapse", "Maduro sanctions"], confidenceLevel: "Medium" },
-  { code: "KOR", name: "South Korea", instabilityScore: 35, momentumChange: "+2", primaryDrivers: ["DPRK missile threat", "Political crisis", "Chip war exposure"], confidenceLevel: "High" },
-  { code: "IRQ", name: "Iraq", instabilityScore: 52, momentumChange: "+3", primaryDrivers: ["Shia militia influence", "ISIL remnants", "Iranian interference"], confidenceLevel: "Medium" },
-  { code: "COL", name: "Colombia", instabilityScore: 46, momentumChange: "+1", primaryDrivers: ["FARC splinters", "Drug corridor wars", "Border tensions"], confidenceLevel: "Medium" },
-  { code: "TUR", name: "Turkey", instabilityScore: 44, momentumChange: "-2", primaryDrivers: ["NATO tensions", "Inflation", "Kurdish conflict"], confidenceLevel: "Medium" },
-  { code: "MEX", name: "Mexico", instabilityScore: 42, momentumChange: "+2", primaryDrivers: ["Cartel territorial control", "Judicial crisis", "US trade tensions"], confidenceLevel: "High" },
-  { code: "SAU", name: "Saudi Arabia", instabilityScore: 38, momentumChange: "-4", primaryDrivers: ["Vision 2030 disruption", "Yemen war costs", "Succession risks"], confidenceLevel: "Low" },
-  { code: "IND", name: "India", instabilityScore: 36, momentumChange: "+1", primaryDrivers: ["LAC border disputes", "Pakistan tensions", "Sectarian incidents"], confidenceLevel: "Medium" },
-  { code: "BRA", name: "Brazil", instabilityScore: 33, momentumChange: "-3", primaryDrivers: ["Deforestation pressure", "Crime in favelas", "Political polarization"], confidenceLevel: "Medium" },
-  { code: "CHN", name: "China", instabilityScore: 40, momentumChange: "+3", primaryDrivers: ["Taiwan ambition", "Trade war", "Property sector crisis"], confidenceLevel: "Medium" },
-  { code: "RUS", name: "Russia", instabilityScore: 62, momentumChange: "+2", primaryDrivers: ["Ukraine war costs", "Elite fracture risk", "Sanctions impact"], confidenceLevel: "Medium" },
-  { code: "ARG", name: "Argentina", instabilityScore: 55, momentumChange: "+4", primaryDrivers: ["Hyperinflation", "Milei restructuring shock", "IMF dependence"], confidenceLevel: "High" },
-  { code: "KEN", name: "Kenya", instabilityScore: 38, momentumChange: "+3", primaryDrivers: ["Currency crisis", "IMF austerity", "Al-Shabaab infiltration"], confidenceLevel: "Medium" },
+  { code: "IRN", name: "Iran", instabilityScore: 93, momentumChange: "+18", primaryDrivers: ["US-Israel military strikes", "Ballistic missile exchange", "Gulf shipping blockade"], confidenceLevel: "High" },
+  { code: "UKR", name: "Ukraine", instabilityScore: 91, momentumChange: "+5", primaryDrivers: ["Russia seizes Kharkiv", "Trump halts all US military aid", "Infrastructure destruction"], confidenceLevel: "High" },
+  { code: "TWN", name: "Taiwan", instabilityScore: 90, momentumChange: "+28", primaryDrivers: ["PLA full naval blockade declared", "Reserve forces mobilised", "TSMC operations halted"], confidenceLevel: "High" },
+  { code: "SDN", name: "Sudan", instabilityScore: 88, momentumChange: "+6", primaryDrivers: ["Civil war — RSF territorial advance", "Famine declared — 8M at risk", "Humanitarian corridor collapse"], confidenceLevel: "High" },
+  { code: "LBN", name: "Lebanon", instabilityScore: 85, momentumChange: "+20", primaryDrivers: ["Israeli ground invasion of southern Lebanon", "Hezbollah 3,000-rocket campaign", "Banking system collapse"], confidenceLevel: "High" },
+  { code: "ISR", name: "Israel", instabilityScore: 84, momentumChange: "+22", primaryDrivers: ["Iran missile barrages", "Ground invasion of Lebanon", "Hezbollah 3,000-rocket campaign"], confidenceLevel: "High" },
+  { code: "AFG", name: "Afghanistan", instabilityScore: 82, momentumChange: "+3", primaryDrivers: ["Taliban governance fragility", "Pakistan border mobilisation", "Humanitarian emergency"], confidenceLevel: "High" },
+  { code: "SOM", name: "Somalia", instabilityScore: 82, momentumChange: "+3", primaryDrivers: ["Al-Shabaab overruns Mogadishu checkpoints", "Port infrastructure attacks", "Governance deficit"], confidenceLevel: "High" },
+  { code: "SYR", name: "Syria", instabilityScore: 80, momentumChange: "+2", primaryDrivers: ["Israeli airstrikes on Hezbollah supply routes", "Regional proxy escalation", "Economic collapse"], confidenceLevel: "High" },
+  { code: "YEM", name: "Yemen", instabilityScore: 80, momentumChange: "+4", primaryDrivers: ["Houthi Red Sea campaign continues", "Strait of Hormuz crisis spillover", "Humanitarian emergency"], confidenceLevel: "High" },
+  { code: "PAK", name: "Pakistan", instabilityScore: 78, momentumChange: "+14", primaryDrivers: ["Nuclear-capable missile test conducted", "India-Pakistan artillery duel", "Army mobilised on Afghan border"], confidenceLevel: "High" },
+  { code: "MMR", name: "Myanmar", instabilityScore: 78, momentumChange: "+6", primaryDrivers: ["Resistance forces capture Lashio", "Junta northern supply lines cut", "ASEAN crisis"], confidenceLevel: "High" },
+  { code: "HTI", name: "Haiti", instabilityScore: 86, momentumChange: "+4", primaryDrivers: ["Gang control of capital", "State institutional collapse", "Food insecurity 5M+"], confidenceLevel: "High" },
+  { code: "RUS", name: "Russia", instabilityScore: 74, momentumChange: "+8", primaryDrivers: ["Kharkiv offensive — major territorial gain", "DPRK troops deployed to front", "Trump aid suspension to Ukraine"], confidenceLevel: "High" },
+  { code: "KOR", name: "South Korea", instabilityScore: 62, momentumChange: "+22", primaryDrivers: ["DEFCON 3 activated", "DPRK missile threat", "Regional war spillover from Taiwan"], confidenceLevel: "High" },
+  { code: "CHN", name: "China", instabilityScore: 60, momentumChange: "+16", primaryDrivers: ["Full naval blockade of Taiwan declared", "US 7th Fleet on condition 3", "Rare earth export ban to G7"], confidenceLevel: "High" },
+  { code: "IND", name: "India", instabilityScore: 58, momentumChange: "+14", primaryDrivers: ["India-Pakistan nuclear doctrine exchange", "Aircraft carrier deployed to Arabian Sea", "Cross-border artillery duel"], confidenceLevel: "High" },
+  { code: "MEX", name: "Mexico", instabilityScore: 55, momentumChange: "+10", primaryDrivers: ["Cartel emergency — army deployed nationwide", "Border crossing seizures", "US tariff pressure"], confidenceLevel: "High" },
+  { code: "ARG", name: "Argentina", instabilityScore: 54, momentumChange: "+3", primaryDrivers: ["Hyperinflation persists", "IMF conditions unmet risk", "Social unrest"], confidenceLevel: "High" },
 ];
 
 const SECTORS = ["Energy", "Finance", "Transport", "Technology", "Manufacturing", "Agriculture", "Defense", "Telecommunications"];
 const REGIONS = ["North America", "Europe", "Middle East", "Africa", "Asia Pacific", "Latin America"];
 const SECTOR_BASE: Record<string, number[]> = {
-  "Energy":            [28, 62, 85, 55, 70, 48],
-  "Finance":           [35, 45, 72, 41, 58, 60],
-  "Transport":         [22, 50, 80, 65, 75, 52],
-  "Technology":        [30, 38, 60, 35, 82, 40],
-  "Manufacturing":     [25, 55, 65, 58, 78, 55],
-  "Agriculture":       [18, 35, 77, 70, 62, 68],
-  "Defense":           [40, 58, 88, 45, 72, 42],
-  "Telecommunications":[20, 42, 68, 40, 65, 38],
+  // Scores by region: [North America, Europe, Middle East, Africa, Asia Pacific, Latin America]
+  "Energy":            [38, 88, 96, 62, 74, 54],
+  "Finance":           [72, 74, 85, 52, 76, 64],
+  "Transport":         [32, 74, 96, 70, 80, 58],
+  "Technology":        [48, 52, 68, 42, 90, 44],
+  "Manufacturing":     [32, 62, 84, 65, 92, 60],
+  "Agriculture":       [24, 42, 88, 80, 68, 72],
+  "Defense":           [52, 72, 96, 50, 89, 46],
+  "Telecommunications":[28, 58, 82, 52, 74, 44],
 };
 
 async function seedDatabase() {
@@ -214,10 +204,20 @@ async function seedDatabase() {
     await storage.createEvent(e);
   }
 
-  if (existingCountries.length < 10) {
-    for (const c of SEED_COUNTRIES) {
-      await storage.createCountry(c);
-    }
+  // Remove any Medium/Low confidence countries (cleanup for production)
+  const lowConfidenceCodes = existingCountries
+    .filter(c => c.confidenceLevel === "Medium" || c.confidenceLevel === "Low")
+    .map(c => c.code);
+  for (const code of lowConfidenceCodes) {
+    await storage.deleteCountry(code);
+  }
+
+  // Insert any seed countries not already present (match by code)
+  const refreshedCountries = await storage.getCountries();
+  const existingCodes = new Set(refreshedCountries.map(c => c.code));
+  const missingCountries = SEED_COUNTRIES.filter(c => !existingCodes.has(c.code));
+  for (const c of missingCountries) {
+    await storage.createCountry(c);
   }
 
   if (existingSectors.length < 10) {
