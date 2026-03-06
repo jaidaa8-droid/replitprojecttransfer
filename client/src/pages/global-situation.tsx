@@ -46,7 +46,7 @@ function severityColor(s: number) {
 }
 
 export default function GlobalSituation() {
-  const [timeWindow, setTimeWindow] = useState<"24h" | "48h" | "5d" | "7d">("7d");
+  const [timeWindow, setTimeWindow] = useState<"24h" | "48h" | "5d" | "7d" | undefined>(undefined);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [severityFilter, setSeverityFilter] = useState<number | null>(null);
@@ -131,18 +131,24 @@ export default function GlobalSituation() {
 
           {/* Time window pill */}
           <div className="absolute top-3 left-3 z-[1000] flex gap-1 bg-black/80 backdrop-blur rounded-lg p-1 border border-white/10">
-            {(["24h", "48h", "5d", "7d"] as const).map(tw => (
+            {([
+              { label: "ALL", value: undefined },
+              { label: "24h", value: "24h" as const },
+              { label: "48h", value: "48h" as const },
+              { label: "5d", value: "5d" as const },
+              { label: "7d", value: "7d" as const },
+            ]).map(({ label, value }) => (
               <button
-                key={tw}
-                data-testid={`button-time-${tw}`}
-                onClick={() => setTimeWindow(tw)}
+                key={label}
+                data-testid={`button-time-${label.toLowerCase()}`}
+                onClick={() => setTimeWindow(value)}
                 className={`px-2 md:px-3 py-1 text-xs font-mono rounded-md transition-all ${
-                  timeWindow === tw
+                  timeWindow === value
                     ? "bg-primary/20 text-primary border border-primary/40"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {tw}
+                {label}
               </button>
             ))}
           </div>

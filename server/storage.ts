@@ -19,6 +19,7 @@ export interface IStorage {
   getEvent(id: number): Promise<Event | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
   deleteEventsByTitlePattern(pattern: string): Promise<void>;
+  deleteAllEvents(): Promise<void>;
   
   // Countries
   getCountries(): Promise<Country[]>;
@@ -65,6 +66,10 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEventsByTitlePattern(pattern: string): Promise<void> {
     await db.delete(events).where(like(events.title, pattern));
+  }
+
+  async deleteAllEvents(): Promise<void> {
+    await db.delete(events);
   }
 
   async getCountries(): Promise<Country[]> {

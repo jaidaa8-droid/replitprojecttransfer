@@ -59,7 +59,10 @@ Preferred communication style: Simple, everyday language.
 - **PostgreSQL** via `drizzle-orm/node-postgres` with a `pg.Pool`
 - **Drizzle ORM** — Schema-first, type-safe query builder. Migrations in `./migrations/`, schema in `shared/schema.ts`
 - **`DatabaseStorage` class** (`server/storage.ts`) — Implements `IStorage` interface for events, countries, and sector risks. Time-window filtering is done with a `gte` clause on `events.timestamp`.
-- **Seed data** — `SEED_EVENTS` array hardcoded in `server/routes.ts` with ~28 geopolitical events. Seeded on app startup if DB is empty.
+- **Seed data** — `SEED_EVENTS` array in `server/routes.ts` contains 29 confirmed real-world geopolitical events from 2023–2025 (Hamas Oct 7 attack, Gaza ceasefire, Houthi Red Sea attacks, Ukraine Kursk incursion, NK ICBM tests, China-Taiwan drills, Sudan civil war, Niger coup, DRC M23, Salt Typhoon hack, Change Healthcare ransomware, Finland/Sweden NATO accessions, etc.). All events use trusted sources only (Reuters, BBC, AP News, etc.).
+- **One-time fictional event migration** — On startup, `seedDatabase()` checks for fictional marker titles (e.g. "Iran Closes Strait of Hormuz"). If found, calls `deleteAllEvents()` then re-seeds with factual events. This auto-runs on both dev and production to purge old fabricated seed data.
+- **Time window filter** — Default is "ALL" (no filter) showing all historical events. Options: ALL, 24h, 48h, 5d, 7d. Backend `getEvents(timeWindow?)` adds `WHERE timestamp >= now() - interval` only when a window is specified.
+- **Confidence filter** — `gte(events.confidence, 0.85)` applied in all `getEvents()` queries. All seed events have confidence ≥ 0.97.
 - **DATABASE_URL** env var required. Will throw on startup if missing.
 
 ### AI Integration
