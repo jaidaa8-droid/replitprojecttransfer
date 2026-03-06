@@ -168,19 +168,14 @@ async function seedDatabase() {
     storage.getSectorRisks(),
   ]);
 
-  // Remove any Medium/Low confidence countries (cleanup for production)
-  const lowConfidenceCodes = existingCountries
-    .filter(c => c.confidenceLevel === "Medium" || c.confidenceLevel === "Low")
-    .map(c => c.code);
-  for (const code of lowConfidenceCodes) {
-    await storage.deleteCountry(code);
+  // Always replace all countries with current seed values (ensures scores stay up to date)
+  const seedCodes = new Set(SEED_COUNTRIES.map(c => c.code));
+  for (const existing of existingCountries) {
+    if (seedCodes.has(existing.code) || existing.confidenceLevel === "Medium" || existing.confidenceLevel === "Low") {
+      await storage.deleteCountry(existing.code);
+    }
   }
-
-  // Insert any seed countries not already present (match by code)
-  const refreshedCountries = await storage.getCountries();
-  const existingCodes = new Set(refreshedCountries.map(c => c.code));
-  const missingCountries = SEED_COUNTRIES.filter(c => !existingCodes.has(c.code));
-  for (const c of missingCountries) {
+  for (const c of SEED_COUNTRIES) {
     await storage.createCountry(c);
   }
 
