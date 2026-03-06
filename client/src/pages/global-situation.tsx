@@ -46,7 +46,7 @@ function severityColor(s: number) {
 }
 
 export default function GlobalSituation() {
-  const [timeWindow, setTimeWindow] = useState<"24h" | "48h" | "5d" | "7d" | undefined>(undefined);
+  const [timeWindow, setTimeWindow] = useState<"24h" | "48h" | "5d" | "7d">("7d");
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [severityFilter, setSeverityFilter] = useState<number | null>(null);
@@ -132,7 +132,6 @@ export default function GlobalSituation() {
           {/* Time window pill */}
           <div className="absolute top-3 left-3 z-[1000] flex gap-1 bg-black/80 backdrop-blur rounded-lg p-1 border border-white/10">
             {([
-              { label: "ALL", value: undefined },
               { label: "24h", value: "24h" as const },
               { label: "48h", value: "48h" as const },
               { label: "5d", value: "5d" as const },
