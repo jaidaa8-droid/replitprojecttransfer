@@ -65,6 +65,16 @@ Preferred communication style: Simple, everyday language.
 - **Confidence filter** — `gte(events.confidence, 0.85)` applied in all `getEvents()` queries. All seed events have confidence ≥ 0.97.
 - **DATABASE_URL** env var required. Will throw on startup if missing.
 
+### News Fetcher (`server/news-fetcher.ts`)
+
+- **4 RSS sources**: Al Jazeera (`all.xml`), BBC World, BBC Middle East, France 24 Middle East
+- **Runs on startup + every 30 min** via `startNewsFetchScheduler()` in `server/routes.ts`
+- **GPT batch size**: 20 headlines per call (model: `gpt-5.1`, `max_completion_tokens: 4000`)
+- **Gulf priority sort**: Gulf/Saudi/Arabian Peninsula keywords bubble to top of queue before batch limit is applied so they are never pushed out
+- **Dedup logic**: Word-overlap filter (3+ words > 4 chars) against existing event titles to avoid duplicates
+- **Geocoding prompt rules**: (1) Specific named country → exact coordinates; (2) "Gulf states" collectively → Saudi Arabia (24.69, 46.72); (3) Houthis/Yemen → 15.37, 44.19; (4) Hormuz/Red Sea → exact chokepoint coordinates
+- **`max_completion_tokens`** must be used (not `max_tokens`) for `gpt-5.1` — using `max_tokens` silently returns HTTP 400
+
 ### AI Integration
 
 - **OpenAI SDK** — Used for two primary features:

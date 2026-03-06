@@ -10,6 +10,7 @@ const RSS_SOURCES = [
   { url: "https://www.aljazeera.com/xml/rss/all.xml", name: "Al Jazeera" },
   { url: "https://feeds.bbci.co.uk/news/world/rss.xml", name: "BBC World" },
   { url: "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml", name: "BBC Middle East" },
+  { url: "https://www.france24.com/en/middle-east/rss", name: "France 24" },
 ];
 
 function extractRssItems(xml: string): { title: string; description: string; pubDate: string; link: string }[] {
@@ -105,17 +106,21 @@ For each headline, return an event object with:
 - category: one of exactly ["Conflicts", "Military activity", "Cyber", "Energy", "Economic", "Political", "Strategic hotspots", "Humanitarian"]
 - severity: integer 1-5 (1=minor, 5=critical)
 - confidence: float 0.90-1.0 (use high confidence for confirmed real news)
-- latitude: float — the location of the PRIMARY ACTOR or subject named in the headline, NOT the conflict they are responding to. If the headline is about Saudi Arabia reacting to a war, use Saudi Arabia's coordinates. If about Gulf states, use the Gulf. If about Houthis, use Yemen.
+- latitude: float — the location of the PRIMARY ACTOR or subject named in the headline, NOT the conflict they are responding to.
+  RULES: (1) Name a specific country (Saudi Arabia, Qatar, Kuwait)? Use that country's exact coordinates below.
+  (2) Headline says "Gulf states" collectively? Use SAUDI ARABIA: 24.69, 46.72 — it is the dominant GCC actor.
+  (3) Houthis/Yemen? Use 15.37, 44.19. (4) Hormuz/Red Sea chokepoint? Use exact coordinates below.
 - longitude: float — same rule as latitude
 - sources: array of strings (source names, max 3)
 
-GEOCODING REFERENCE (use exact values when these countries/cities are the primary subject):
+GEOCODING REFERENCE (use exact values):
 Saudi Arabia / Riyadh: 24.69, 46.72 | UAE / Dubai: 25.20, 55.27 | Qatar / Doha: 25.29, 51.53
 Kuwait: 29.37, 47.98 | Bahrain / Manama: 26.22, 50.59 | Oman / Muscat: 23.59, 58.39
 Yemen / Sanaa: 15.37, 44.19 | Iraq / Baghdad: 33.34, 44.40 | Jordan / Amman: 31.95, 35.93
 Iran / Tehran: 35.69, 51.39 | Israel / Tel Aviv: 32.07, 34.78 | Lebanon / Beirut: 33.89, 35.50
 Syria / Damascus: 33.51, 36.29 | Turkey / Ankara: 39.93, 32.86 | Egypt / Cairo: 30.06, 31.25
 Strait of Hormuz: 26.56, 56.25 | Red Sea: 20.00, 38.00 | Arabian Sea: 15.00, 65.00
+"Gulf states" (no specific country named) → Saudi Arabia: 24.69, 46.72
 
 Return a JSON object with key "events" containing an array of classified events. Skip non-geopolitical headlines.
 
