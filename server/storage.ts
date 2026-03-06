@@ -10,7 +10,7 @@ import {
   type InsertCountry,
   type InsertSectorRisk
 } from "@shared/schema";
-import { eq, gte, and } from "drizzle-orm";
+import { eq, gte, and, like } from "drizzle-orm";
 
 export interface IStorage {
   // Events
@@ -18,6 +18,7 @@ export interface IStorage {
   getAllEventTitles(): Promise<string[]>;
   getEvent(id: number): Promise<Event | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
+  deleteEventsByTitlePattern(pattern: string): Promise<void>;
   
   // Countries
   getCountries(): Promise<Country[]>;
@@ -60,6 +61,10 @@ export class DatabaseStorage implements IStorage {
   async createEvent(event: InsertEvent): Promise<Event> {
     const [created] = await db.insert(events).values(event).returning();
     return created;
+  }
+
+  async deleteEventsByTitlePattern(pattern: string): Promise<void> {
+    await db.delete(events).where(like(events.title, pattern));
   }
 
   async getCountries(): Promise<Country[]> {
