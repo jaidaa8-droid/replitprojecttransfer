@@ -91,6 +91,7 @@ const SEED_EVENTS = [
 
 // Titles of fictional/fabricated events from previous seed — used for one-time cleanup
 const FICTIONAL_EVENT_MARKERS = [
+  // v1 fictional seed markers
   "Iran Closes Strait of Hormuz to Western Shipping",
   "US Strikes IRGC Missile Bases Inside Iran",
   "Taiwan Strait Full Blockade Declared",
@@ -98,6 +99,12 @@ const FICTIONAL_EVENT_MARKERS = [
   "Israel Strikes Iranian Nuclear Facility at Natanz",
   "NATO Invokes Article 5 Over Baltic Attacks",
   "Tehran Hit by Heavy Bombing on Day Seven of US-Israel War",
+  // v2 old stub/low-quality seed markers (present in production)
+  "Energy Price Spike",
+  "Iran Uranium Enrichment Milestone",
+  "Myanmar Civil War Escalation",
+  "Trump Halts All Ukraine Military Aid",
+  "Russia Seizes Kharkiv in Overnight Advance",
 ];
 
 const SEED_COUNTRIES = [
