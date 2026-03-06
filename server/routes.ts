@@ -8,6 +8,8 @@ import { fetchAndIngestNews, startNewsFetchScheduler } from "./news-fetcher";
 import { events, countries, sectorRisks } from "@shared/schema";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
+import fs from "fs";
+import path from "path";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -162,6 +164,51 @@ const SECTOR_BASE: Record<string, number[]> = {
   "Telecommunications":[28, 58, 82, 52, 74, 44],
 };
 
+async function applyDevSnapshot() {
+  const snapshotPath = path.join(process.cwd(), "server", "migrations", "dev-snapshot.json");
+  if (!fs.existsSync(snapshotPath)) return;
+
+  const snapshot = JSON.parse(fs.readFileSync(snapshotPath, "utf8"));
+  const snapshotEvents: any[] = snapshot.events || [];
+  const snapshotCountries: any[] = snapshot.countries || [];
+
+  const [{ count }] = await db.execute(sql`SELECT COUNT(*)::int as count FROM events`) as any[];
+  const currentCount = Number(count);
+
+  if (currentCount >= snapshotEvents.length - 5) {
+    console.log(`[snapshot] DB has ${currentCount} events (snapshot: ${snapshotEvents.length}) — no sync needed`);
+    return;
+  }
+
+  console.log(`[snapshot] DB has ${currentCount} events but snapshot has ${snapshotEvents.length} — applying snapshot...`);
+
+  // Clear existing data and repopulate from snapshot
+  await db.execute(sql`DELETE FROM events`);
+  await db.execute(sql`DELETE FROM countries`);
+
+  // Insert events in batches of 50
+  for (let i = 0; i < snapshotEvents.length; i += 50) {
+    const batch = snapshotEvents.slice(i, i + 50);
+    for (const e of batch) {
+      await db.execute(sql`
+        INSERT INTO events (title, description, category, severity, confidence, latitude, longitude, timestamp, sources)
+        VALUES (${e.title}, ${e.description}, ${e.category}, ${e.severity}, ${e.confidence},
+                ${e.latitude}, ${e.longitude}, ${new Date(e.timestamp).toISOString()}, ${JSON.stringify(e.sources)})
+      `);
+    }
+  }
+
+  // Insert countries from snapshot
+  for (const c of snapshotCountries) {
+    await db.execute(sql`
+      INSERT INTO countries (code, name, instability_score, momentum_change, primary_drivers, confidence_level)
+      VALUES (${c.code}, ${c.name}, ${c.instability_score}, ${c.momentum_change}, ${JSON.stringify(c.primary_drivers)}, ${c.confidence_level})
+    `);
+  }
+
+  console.log(`[snapshot] Applied ${snapshotEvents.length} events and ${snapshotCountries.length} countries from dev snapshot`);
+}
+
 async function seedDatabase() {
   // Re-geocode any events mistakenly placed at Saudi Arabia/Riyadh coords → UAE/Dubai
   await db.execute(
@@ -220,8 +267,10 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
-  // Seed data
-  seedDatabase().catch(console.error);
+  // Apply dev snapshot first (syncs production DB with dev data), then seed
+  applyDevSnapshot()
+    .then(() => seedDatabase())
+    .catch(console.error);
 
   app.get(api.events.list.path, async (req, res) => {
     try {
