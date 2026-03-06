@@ -21,8 +21,8 @@
     --popover: 240 10% 6%;
     --popover-foreground: 210 40% 98%;
     
-    --primary: 189 94% 43%; /* Cyber Cyan */
-    --primary-foreground: 240 10% 4%;
+    --primary: 170 100% 18%; /* Brand Green */
+    --primary-foreground: 210 40% 98%;
     
     --secondary: 240 10% 12%;
     --secondary-foreground: 210 40% 98%;
@@ -41,7 +41,7 @@
     
     --border: 240 10% 18%;
     --input: 240 10% 18%;
-    --ring: 189 94% 43%;
+    --ring: 170 100% 18%;
     
     --radius: 0.25rem; /* Sharp, technical corners */
   }
@@ -49,7 +49,7 @@
   body {
     @apply bg-background text-foreground font-sans antialiased overflow-hidden;
     background-image: 
-      radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 50% 0%, rgba(0, 92, 77, 0.06) 0%, transparent 50%),
       linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
     background-size: 100% 100%, 40px 40px, 40px 40px;
