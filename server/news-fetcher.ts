@@ -9,6 +9,7 @@ const openai = new OpenAI({
 const RSS_SOURCES = [
   { url: "https://www.aljazeera.com/xml/rss/all.xml", name: "Al Jazeera" },
   { url: "https://feeds.bbci.co.uk/news/world/rss.xml", name: "BBC World" },
+  { url: "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml", name: "BBC Middle East" },
 ];
 
 function extractRssItems(xml: string): { title: string; description: string; pubDate: string; link: string }[] {
@@ -68,6 +69,10 @@ const GEOPOLITICAL_KEYWORDS = [
   "hostage", "assassination", "genocide", "famine", "disaster", "earthquake", "flood",
   "china", "russia", "usa", "iran", "israel", "ukraine", "north korea", "taiwan",
   "middle east", "pacific", "africa", "europe", "asia", "gulf", "strait",
+  // Saudi Arabia / Arabian Peninsula / Gulf region
+  "saudi", "arabia", "riyadh", "aramco", "gcc", "opec",
+  "uae", "dubai", "abu dhabi", "qatar", "doha", "bahrain", "kuwait", "oman", "muscat",
+  "yemen", "houthi", "red sea", "persian gulf", "arabian gulf", "hormuz",
 ];
 
 function isGeopoliticallyRelevant(title: string, description: string): boolean {
@@ -150,7 +155,7 @@ export async function fetchAndIngestNews(): Promise<{ added: number; skipped: nu
     for (const src of RSS_SOURCES) {
       const items = await fetchRssFeed(src.url);
       let relevant = 0;
-      for (const item of items.slice(0, 15)) {
+      for (const item of items) {
         if (isGeopoliticallyRelevant(item.title, item.description)) {
           allHeadlines.push({ ...item, source: src.name });
           relevant++;
@@ -181,7 +186,7 @@ export async function fetchAndIngestNews(): Promise<{ added: number; skipped: nu
 
     if (newHeadlines.length === 0) return { added: 0, skipped: allHeadlines.length };
 
-    const classified = await classifyHeadlinesWithAI(newHeadlines.slice(0, 10));
+    const classified = await classifyHeadlinesWithAI(newHeadlines.slice(0, 15));
 
     for (const event of classified) {
       if (!event.title || event.title.length < 5) { skipped++; continue; }
