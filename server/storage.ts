@@ -10,7 +10,7 @@ import {
   type InsertCountry,
   type InsertSectorRisk
 } from "@shared/schema";
-import { eq, gte } from "drizzle-orm";
+import { eq, gte, and } from "drizzle-orm";
 
 export interface IStorage {
   // Events
@@ -30,20 +30,20 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   async getEvents(timeWindow?: string): Promise<Event[]> {
-    let query = db.select().from(events);
-    
+    const minConfidence = gte(events.confidence, 0.85);
+
     if (timeWindow) {
       const now = new Date();
       let hours = 24;
       if (timeWindow === "48h") hours = 48;
       else if (timeWindow === "5d") hours = 24 * 5;
       else if (timeWindow === "7d") hours = 24 * 7;
-      
+
       const threshold = new Date(now.getTime() - hours * 60 * 60 * 1000);
-      return await db.select().from(events).where(gte(events.timestamp, threshold));
+      return await db.select().from(events).where(and(gte(events.timestamp, threshold), minConfidence));
     }
-    
-    return await query;
+
+    return await db.select().from(events).where(minConfidence);
   }
 
   async getEvent(id: number): Promise<Event | undefined> {
