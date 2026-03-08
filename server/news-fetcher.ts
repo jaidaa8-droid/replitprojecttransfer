@@ -33,7 +33,8 @@ function extractRssItems(xml: string): { title: string; description: string; pub
     const title = getField("title");
     const description = getField("description");
     const pubDate = getField("pubDate");
-    const link = getField("link") || (block.match(/<link>([^<]+)<\/link>/) || [])[1] || "";
+    const rawLink = getField("link") || (block.match(/<link>([^<]+)<\/link>/) || [])[1] || "";
+    const link = rawLink.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"');
     if (title && title.length > 5) items.push({ title, description, pubDate, link });
   }
   return items;
@@ -204,8 +205,9 @@ ${headlines.map((h, i) => `${i + 1}. [${h.source}] pubDate: ${h.pubDate || "unkn
   }
 }
 
-export async function fetchAndIngestNews(): Promise<{ added: number; skipped: number }> {
+export async function fetchAndIngestNews(): Promise<{ added: number; merged: number; skipped: number }> {
   let added = 0;
+  let merged = 0;
   let skipped = 0;
 
   try {
@@ -224,24 +226,30 @@ export async function fetchAndIngestNews(): Promise<{ added: number; skipped: nu
     }
     console.log(`[news-fetcher] total allHeadlines: ${allHeadlines.length}`);
 
-    if (allHeadlines.length === 0) return { added: 0, skipped: 0 };
+    if (allHeadlines.length === 0) return { added: 0, merged: 0, skipped: 0 };
 
-    const existingEvents = await storage.getEvents();
-    const existingTitles = new Set(existingEvents.map(e => e.title.toLowerCase().trim()));
+    // Load all existing events for dedup (lightweight: id, title, sources, sourceUrls)
+    const existingForDedup = await storage.getEventsForDedup();
+    const existingTitleStems = existingForDedup.map(e => ({
+      id: e.id,
+      titleLower: e.title.toLowerCase(),
+      stems: stemify(e.title),
+      sources: e.sources,
+      sourceUrls: e.sourceUrls || [],
+    }));
 
+    // Pre-GPT filter: remove raw headlines that clearly match an existing GPT title
+    // (cheap first pass — misses vocab-variant duplicates, caught post-GPT)
     const newHeadlines = allHeadlines.filter(h => {
       const norm = h.title.toLowerCase().trim();
-      const exactMatch = existingTitles.has(norm);
-      // Use 5-char stems so spelling variants (defence/defense, colour/color) match
-      const stems = norm.split(" ").filter(w => w.length > 4).map(w => w.slice(0, 5));
-      const wordOverlapMatch = Array.from(existingTitles).some(t => {
-        const matched = stems.filter(stem => t.includes(stem)).length;
-        return matched >= 2;
+      return !existingTitleStems.some(ex => {
+        if (ex.titleLower === norm) return true;
+        const hStems = stemify(h.title);
+        return hStems.filter(s => ex.stems.includes(s)).length >= 3;
       });
-      return !exactMatch && !wordOverlapMatch;
     });
 
-    // Prioritize Gulf/Saudi/Arabian Peninsula stories so they are never pushed beyond the batch limit
+    // Prioritize Gulf/Arabian Peninsula stories
     const GULF_PRIORITY = ["saudi", "gulf", "riyadh", "aramco", "gcc", "opec", "uae", "dubai", "qatar", "doha", "kuwait", "bahrain", "oman", "houthi", "red sea", "hormuz", "arabian"];
     const isGulfStory = (h: { title: string; description: string }) =>
       GULF_PRIORITY.some(kw => (h.title + " " + h.description).toLowerCase().includes(kw));
@@ -250,29 +258,64 @@ export async function fetchAndIngestNews(): Promise<{ added: number; skipped: nu
       ...newHeadlines.filter(h => !isGulfStory(h)),
     ];
 
-    console.log(`[news-fetcher] after dedup: ${prioritised.length} new headlines, ${allHeadlines.length - newHeadlines.length} deduped`);
-    if (prioritised.length > 0) {
-      console.log(`[news-fetcher] new:`, prioritised.slice(0,3).map(h => h.title));
-    }
+    console.log(`[news-fetcher] pre-GPT filter: ${prioritised.length} candidates, ${allHeadlines.length - newHeadlines.length} pre-filtered`);
 
-    if (prioritised.length === 0) return { added: 0, skipped: allHeadlines.length };
+    if (prioritised.length === 0) return { added: 0, merged: 0, skipped: allHeadlines.length };
 
     const classified = await classifyHeadlinesWithAI(prioritised.slice(0, 20));
 
     for (const event of classified) {
       if (!event.title || event.title.length < 5) { skipped++; continue; }
+
+      // Post-GPT dedup: compare GPT-generated title against existing GPT-generated titles
+      // This catches cases where two different RSS phrasings become similar GPT titles
+      const evStems = stemify(event.title);
+      let bestMatch: { id: number; sources: string[]; sourceUrls: string[] } | null = null;
+      let bestScore = 0;
+
+      for (const ex of existingTitleStems) {
+        const score = evStems.filter(s => ex.stems.includes(s)).length;
+        if (score >= 3 && score > bestScore) {
+          bestScore = score;
+          bestMatch = { id: ex.id, sources: ex.sources, sourceUrls: ex.sourceUrls };
+        }
+      }
+
+      if (bestMatch) {
+        // Event already exists — merge in any new source names and URLs
+        const newSrcs = (event.sources || []).filter(s => !(bestMatch!.sources || []).includes(s));
+        const newUrls = (event.sourceUrls || []).filter(u => !(bestMatch!.sourceUrls || []).includes(u));
+        if (newSrcs.length > 0 || newUrls.length > 0) {
+          await storage.mergeEventSources(bestMatch.id, event.sources || [], event.sourceUrls || []);
+          console.log(`[news-fetcher] merged "${event.title.slice(0, 50)}" into existing id=${bestMatch.id} (+${newSrcs.join(",")})`);
+          merged++;
+        } else {
+          skipped++;
+        }
+        continue;
+      }
+
+      // No match — insert as a new event
       try {
-        await storage.createEvent(event);
+        const created = await storage.createEvent(event);
+        // Add the newly created event to the in-memory dedup list for this run
+        existingTitleStems.push({
+          id: created.id,
+          titleLower: created.title.toLowerCase(),
+          stems: stemify(created.title),
+          sources: created.sources,
+          sourceUrls: created.sourceUrls || [],
+        });
         added++;
       } catch {
         skipped++;
       }
     }
 
-    return { added, skipped };
+    return { added, merged, skipped };
   } catch (err) {
     console.error("[news-fetcher] error:", err);
-    return { added: 0, skipped: 0 };
+    return { added: 0, merged: 0, skipped: 0 };
   }
 }
 
@@ -282,7 +325,7 @@ export function startNewsFetchScheduler(): void {
   const run = async () => {
     console.log("[news-fetcher] fetching live news...");
     const result = await fetchAndIngestNews();
-    console.log(`[news-fetcher] done — added: ${result.added}, skipped: ${result.skipped}`);
+    console.log(`[news-fetcher] done — added: ${result.added}, merged: ${result.merged}, skipped: ${result.skipped}`);
   };
 
   run();

@@ -15,17 +15,18 @@ import { eq, gte, and, like } from "drizzle-orm";
 export interface IStorage {
   // Events
   getEvents(timeWindow?: string): Promise<Event[]>;
-  getAllEventTitles(): Promise<string[]>;
+  getEventsForDedup(): Promise<{ id: number; title: string; sources: string[]; sourceUrls: string[] | null }[]>;
   getEvent(id: number): Promise<Event | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
+  mergeEventSources(id: number, newSources: string[], newUrls: string[]): Promise<void>;
   deleteEventsByTitlePattern(pattern: string): Promise<void>;
   deleteAllEvents(): Promise<void>;
-  
+
   // Countries
   getCountries(): Promise<Country[]>;
   createCountry(country: InsertCountry): Promise<Country>;
   deleteCountry(code: string): Promise<void>;
-  
+
   // Sector Risks
   getSectorRisks(): Promise<SectorRisk[]>;
   createSectorRisk(risk: InsertSectorRisk): Promise<SectorRisk>;
@@ -49,9 +50,14 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(events).where(minConfidence);
   }
 
-  async getAllEventTitles(): Promise<string[]> {
-    const rows = await db.select({ title: events.title }).from(events);
-    return rows.map(r => r.title);
+  async getEventsForDedup(): Promise<{ id: number; title: string; sources: string[]; sourceUrls: string[] | null }[]> {
+    const rows = await db.select({
+      id: events.id,
+      title: events.title,
+      sources: events.sources,
+      sourceUrls: events.sourceUrls,
+    }).from(events);
+    return rows as { id: number; title: string; sources: string[]; sourceUrls: string[] | null }[];
   }
 
   async getEvent(id: number): Promise<Event | undefined> {
@@ -62,6 +68,15 @@ export class DatabaseStorage implements IStorage {
   async createEvent(event: InsertEvent): Promise<Event> {
     const [created] = await db.insert(events).values(event).returning();
     return created;
+  }
+
+  async mergeEventSources(id: number, newSources: string[], newUrls: string[]): Promise<void> {
+    const [ev] = await db.select({ sources: events.sources, sourceUrls: events.sourceUrls })
+      .from(events).where(eq(events.id, id));
+    if (!ev) return;
+    const merged = [...new Set([...(ev.sources || []), ...newSources])].slice(0, 5);
+    const mergedUrls = [...new Set([...(ev.sourceUrls || []), ...newUrls])];
+    await db.update(events).set({ sources: merged, sourceUrls: mergedUrls }).where(eq(events.id, id));
   }
 
   async deleteEventsByTitlePattern(pattern: string): Promise<void> {
