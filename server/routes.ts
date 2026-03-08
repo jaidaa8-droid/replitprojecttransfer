@@ -191,9 +191,10 @@ async function applyDevSnapshot() {
     const batch = snapshotEvents.slice(i, i + 50);
     for (const e of batch) {
       await db.execute(sql`
-        INSERT INTO events (title, description, category, severity, confidence, latitude, longitude, timestamp, sources)
+        INSERT INTO events (title, description, category, severity, confidence, latitude, longitude, timestamp, sources, source_url)
         VALUES (${e.title}, ${e.description}, ${e.category}, ${e.severity}, ${e.confidence},
-                ${e.latitude}, ${e.longitude}, ${new Date(e.timestamp).toISOString()}, ${JSON.stringify(e.sources)})
+                ${e.latitude}, ${e.longitude}, ${new Date(e.timestamp).toISOString()}, ${JSON.stringify(e.sources)},
+                ${e.source_url || e.sourceUrl || null})
       `);
     }
   }

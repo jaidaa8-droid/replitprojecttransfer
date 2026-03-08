@@ -90,10 +90,11 @@ type RawEvent = {
   longitude: number;
   timestamp: Date;
   sources: string[];
+  sourceUrl?: string;
 };
 
 async function classifyHeadlinesWithAI(
-  headlines: { title: string; description: string; pubDate: string; source: string }[]
+  headlines: { title: string; description: string; pubDate: string; link: string; source: string }[]
 ): Promise<RawEvent[]> {
   if (headlines.length === 0) return [];
 
@@ -119,11 +120,12 @@ Strait of Hormuz: 26.56, 56.25 | Red Sea: 20.00, 38.00 | Arabian Sea: 15.00, 65.
 
 Also include in each event object:
 - pubDate: string — copy the pubDate value EXACTLY as given for that headline (do not modify it)
+- sourceUrl: string — copy the link/URL value EXACTLY as given for that headline (do not modify it)
 
 Return a JSON object with key "events" containing an array of classified events. Skip non-geopolitical headlines.
 
 Headlines:
-${headlines.map((h, i) => `${i + 1}. [${h.source}] pubDate: ${h.pubDate || "unknown"}\n   ${h.title}\n   ${h.description}`).join("\n\n")}`;
+${headlines.map((h, i) => `${i + 1}. [${h.source}] pubDate: ${h.pubDate || "unknown"} link: ${h.link || ""}\n   ${h.title}\n   ${h.description}`).join("\n\n")}`;
 
   try {
     console.log(`[news-fetcher] calling GPT for ${headlines.length} headlines...`);
@@ -146,6 +148,7 @@ ${headlines.map((h, i) => `${i + 1}. [${h.source}] pubDate: ${h.pubDate || "unkn
         const parsed = new Date(e.pubDate);
         if (!isNaN(parsed.getTime())) timestamp = parsed;
       }
+      const sourceUrl = typeof e.sourceUrl === "string" && e.sourceUrl.startsWith("http") ? e.sourceUrl : undefined;
       return {
         title: String(e.title || "").slice(0, 100),
         description: String(e.description || ""),
@@ -156,6 +159,7 @@ ${headlines.map((h, i) => `${i + 1}. [${h.source}] pubDate: ${h.pubDate || "unkn
         longitude: Number(e.longitude) || 0,
         timestamp,
         sources: Array.isArray(e.sources) ? e.sources.slice(0, 3) : ["News Feed"],
+        sourceUrl,
       };
     });
   } catch (err: any) {
@@ -169,7 +173,7 @@ export async function fetchAndIngestNews(): Promise<{ added: number; skipped: nu
   let skipped = 0;
 
   try {
-    const allHeadlines: { title: string; description: string; pubDate: string; source: string }[] = [];
+    const allHeadlines: { title: string; description: string; pubDate: string; link: string; source: string }[] = [];
 
     for (const src of RSS_SOURCES) {
       const items = await fetchRssFeed(src.url);

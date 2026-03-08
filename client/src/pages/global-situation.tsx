@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 import {
   Search, X, Zap, ArrowRight, BrainCircuit, Crosshair,
-  Activity, ChevronLeft, Filter, Clock, RefreshCw, Layers, Radio
+  Activity, ChevronLeft, Filter, Clock, RefreshCw, Layers, Radio, ExternalLink
 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useEvents } from "@/hooks/use-events";
@@ -434,6 +434,22 @@ function EventDetail({ event, onClose }: { event: Event; onClose: () => void }) 
               ))}
             </div>
           </div>
+
+          {event.sourceUrl && (
+            <div>
+              <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-2">SOURCE LINK</div>
+              <a
+                href={event.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="link-source-url"
+                className="flex items-center gap-1.5 text-xs text-primary hover:underline font-mono truncate"
+              >
+                <ExternalLink className="w-3 h-3 shrink-0" />
+                <span className="truncate">{event.sourceUrl}</span>
+              </a>
+            </div>
+          )}
 
           {!analyzeMutation.data ? (
             <Button
