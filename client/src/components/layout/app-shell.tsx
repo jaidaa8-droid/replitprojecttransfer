@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { Globe, Activity, Target, PieChart, Database, Map } from "lucide-react";
+import { Globe, Activity, Target, PieChart, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const BRAND = "#005C4D";
@@ -61,15 +61,6 @@ export function AppShell({ children }: AppShellProps) {
           })}
         </div>
 
-        <div className="mt-auto flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-secondary border border-border/50 flex items-center justify-center cursor-pointer transition-colors"
-            onMouseEnter={e => (e.currentTarget.style.borderColor = `${BRAND}80`)}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = "")}
-          >
-            <Database className="w-4 h-4" style={{ color: BRAND }} />
-          </div>
-
-        </div>
       </nav>
 
       {/* ── Main Content Area ── */}
