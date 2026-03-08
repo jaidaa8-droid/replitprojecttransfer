@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { Globe, Activity, Target, PieChart, Database, Map, Info } from "lucide-react";
+import { Globe, Activity, Target, PieChart, Database, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const BRAND = "#005C4D";
@@ -69,17 +69,6 @@ export function AppShell({ children }: AppShellProps) {
             <Database className="w-4 h-4" style={{ color: BRAND }} />
           </div>
 
-          <div className="relative group" data-testid="button-disclaimer">
-            <div className="w-10 h-10 rounded-full bg-secondary border border-border/50 flex items-center justify-center cursor-pointer transition-colors hover:border-yellow-500/50">
-              <Info className="w-4 h-4 text-muted-foreground/50 group-hover:text-yellow-500/70 transition-colors" />
-            </div>
-            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-52 bg-card border border-border rounded-lg px-3 py-2.5 shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 z-50">
-              <p className="text-[10px] font-mono text-muted-foreground/70 leading-relaxed text-center">
-                Experimental tool — outputs may be inaccurate and are for testing purposes only.
-              </p>
-              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-card border-r border-b border-border rotate-45" />
-            </div>
-          </div>
         </div>
       </nav>
 
