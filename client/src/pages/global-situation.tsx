@@ -162,7 +162,7 @@ export default function GlobalSituation() {
 
           {/* Severity legend — hidden on mobile */}
           <div className="hidden md:block absolute bottom-8 left-4 z-[1000] bg-black/80 backdrop-blur border border-white/10 rounded-lg p-3 space-y-1.5">
-            {[5, 4, 3, 2, 1].map(s => (
+            {[5, 4, 3, 2].map(s => (
               <div key={s} className="flex items-center gap-2">
                 <div
                   className="w-2.5 h-2.5 rounded-full"
