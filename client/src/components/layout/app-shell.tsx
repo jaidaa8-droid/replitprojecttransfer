@@ -86,6 +86,11 @@ export function AppShell({ children }: AppShellProps) {
       {/* ── Main Content Area ── */}
       <main className="flex-1 relative h-full flex flex-col overflow-hidden min-w-0 pb-14 md:pb-0">
         {children}
+        <div className="shrink-0 w-full px-4 py-1 flex items-center justify-center" data-testid="disclaimer-banner">
+          <span className="text-[10px] font-mono text-muted-foreground/40 tracking-wide text-center">
+            Experimental tool — outputs may be inaccurate and are for testing only.
+          </span>
+        </div>
       </main>
 
       {/* ── Bottom Navigation Bar (mobile only) ── */}
