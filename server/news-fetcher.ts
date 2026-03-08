@@ -167,9 +167,18 @@ ${headlines.map((h, i) => `${i + 1}. [${h.source}] pubDate: ${h.pubDate || "unkn
         allUrls.push(e.sourceUrl);
       }
 
-      // Then: find all other input headlines that match this event by title stems
+      // Then: find all other input headlines that match this event by title stems,
+      // BUT only include URLs from sources that are listed in the event's sources array
+      const eventSources: string[] = Array.isArray(e.sources) ? e.sources : [];
       headlines.forEach(h => {
         if (h.link && h.link.startsWith("http") && !allUrls.includes(h.link)) {
+          // Only include if headline's feed source is named in event.sources
+          const sourceMatches = eventSources.some(src =>
+            src.toLowerCase() === h.source.toLowerCase() ||
+            src.toLowerCase().startsWith(h.source.split(" ")[0].toLowerCase()) ||
+            h.source.toLowerCase().startsWith(src.split(" ")[0].toLowerCase())
+          );
+          if (!sourceMatches) return;
           const hStems = stemify(h.title);
           const score = evStems.filter(s => hStems.includes(s)).length;
           if (score >= 2) allUrls.push(h.link);

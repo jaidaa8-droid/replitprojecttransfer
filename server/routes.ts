@@ -172,8 +172,8 @@ async function applyDevSnapshot() {
   const snapshotEvents: any[] = snapshot.events || [];
   const snapshotCountries: any[] = snapshot.countries || [];
 
-  const [{ count }] = await db.execute(sql`SELECT COUNT(*)::int as count FROM events`) as any[];
-  const currentCount = Number(count);
+  const countResult = await db.execute(sql`SELECT COUNT(*)::int as count FROM events`) as any;
+  const currentCount = Number(countResult?.rows?.[0]?.count ?? countResult?.[0]?.count ?? 0);
 
   if (currentCount >= snapshotEvents.length - 5) {
     console.log(`[snapshot] DB has ${currentCount} events (snapshot: ${snapshotEvents.length}) — no sync needed`);
