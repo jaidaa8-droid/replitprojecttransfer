@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Globe, Activity, Target, PieChart, Database, Map } from "lucide-react";
+import { Globe, Activity, Target, PieChart, Database, Map, FlaskConical, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const BRAND = "#005C4D";
@@ -11,6 +11,7 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const [location] = useLocation();
+  const [disclaimerDismissed, setDisclaimerDismissed] = useState(false);
 
   const navItems = [
     { href: "/", icon: Map, label: "Map" },
@@ -73,11 +74,25 @@ export function AppShell({ children }: AppShellProps) {
 
       {/* ── Main Content Area ── */}
       <main className="flex-1 relative h-full flex flex-col overflow-hidden min-w-0 pb-14 md:pb-0">
-        <div className="shrink-0 w-full px-4 py-1 flex items-center justify-center" data-testid="disclaimer-banner">
-          <span className="text-[10px] font-mono text-muted-foreground/40 tracking-wide text-center">
-            Experimental tool — outputs may be inaccurate and are for testing only.
-          </span>
-        </div>
+        {!disclaimerDismissed && (
+          <div
+            className="shrink-0 w-full px-4 py-1.5 flex items-center justify-center gap-2 border-b border-amber-500/20 bg-amber-500/5"
+            data-testid="disclaimer-banner"
+          >
+            <FlaskConical className="w-3 h-3 text-amber-400/70 shrink-0" />
+            <span className="text-[10px] font-mono text-amber-400/70 tracking-wide text-center">
+              Experimental tool — outputs may be inaccurate and are for testing only.
+            </span>
+            <button
+              onClick={() => setDisclaimerDismissed(true)}
+              data-testid="button-dismiss-disclaimer"
+              className="shrink-0 text-amber-400/50 hover:text-amber-400 transition-colors ml-1"
+              aria-label="Dismiss disclaimer"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        )}
         {children}
       </main>
 
