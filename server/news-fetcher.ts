@@ -80,6 +80,15 @@ function isGeopoliticallyRelevant(title: string, description: string): boolean {
   return GEOPOLITICAL_KEYWORDS.some(kw => text.includes(kw));
 }
 
+const STEM_STOP = new Set(["after","about","their","these","those","which","where","while","there","other","would","could","should","might","still","since","until","under","every","being","first","three","seven","eight","again","never","often","world","state","local","right","great","large","small","major","total","among","whose","along","above","below","later","early","today","night","based","needs","least","going","years","named","given","order","taken","began","seen","told","says","said","both","such","when","then","been","have","from","this","that","with","they","will","more","were","over","what","into","also","than","some","most","only","even","back","just","last","many","much","same","each","made","come","high","does","down","away","know","make","like","long","need","time","used","part","call","keep","left","help","show","turn","place","give","work","full","city","move","play","next","soon","days","week","month","year"]);
+
+function stemify(text: string): string[] {
+  return text.toLowerCase().split(/\s+/)
+    .map(w => w.replace(/[^a-z]/g, ""))
+    .filter(w => w.length > 4 && !STEM_STOP.has(w) && !STEM_STOP.has(w.slice(0, 5)))
+    .map(w => w.slice(0, 5));
+}
+
 type RawEvent = {
   title: string;
   description: string;
@@ -90,7 +99,7 @@ type RawEvent = {
   longitude: number;
   timestamp: Date;
   sources: string[];
-  sourceUrl?: string;
+  sourceUrls?: string[];
 };
 
 async function classifyHeadlinesWithAI(
@@ -148,7 +157,25 @@ ${headlines.map((h, i) => `${i + 1}. [${h.source}] pubDate: ${h.pubDate || "unkn
         const parsed = new Date(e.pubDate);
         if (!isNaN(parsed.getTime())) timestamp = parsed;
       }
-      const sourceUrl = typeof e.sourceUrl === "string" && e.sourceUrl.startsWith("http") ? e.sourceUrl : undefined;
+
+      // Collect ALL matching URLs from input headlines (not just the GPT-echoed one)
+      const evStems = stemify(String(e.title || ""));
+      const allUrls: string[] = [];
+
+      // First: include the GPT-echoed URL if valid
+      if (typeof e.sourceUrl === "string" && e.sourceUrl.startsWith("http")) {
+        allUrls.push(e.sourceUrl);
+      }
+
+      // Then: find all other input headlines that match this event by title stems
+      headlines.forEach(h => {
+        if (h.link && h.link.startsWith("http") && !allUrls.includes(h.link)) {
+          const hStems = stemify(h.title);
+          const score = evStems.filter(s => hStems.includes(s)).length;
+          if (score >= 2) allUrls.push(h.link);
+        }
+      });
+
       return {
         title: String(e.title || "").slice(0, 100),
         description: String(e.description || ""),
@@ -159,7 +186,7 @@ ${headlines.map((h, i) => `${i + 1}. [${h.source}] pubDate: ${h.pubDate || "unkn
         longitude: Number(e.longitude) || 0,
         timestamp,
         sources: Array.isArray(e.sources) ? e.sources.slice(0, 3) : ["News Feed"],
-        sourceUrl,
+        sourceUrls: allUrls.length > 0 ? allUrls : undefined,
       };
     });
   } catch (err: any) {

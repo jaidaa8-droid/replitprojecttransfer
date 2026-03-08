@@ -13,7 +13,7 @@ export const events = pgTable("events", {
   longitude: real("longitude").notNull(),
   timestamp: timestamp("timestamp").notNull(),
   sources: jsonb("sources").$type<string[]>().notNull(),
-  sourceUrl: text("source_url"),
+  sourceUrls: jsonb("source_urls").$type<string[]>(),
 });
 
 export const countries = pgTable("countries", {

@@ -190,11 +190,12 @@ async function applyDevSnapshot() {
   for (let i = 0; i < snapshotEvents.length; i += 50) {
     const batch = snapshotEvents.slice(i, i + 50);
     for (const e of batch) {
+      const urls = e.source_urls || e.sourceUrls || (e.source_url ? [e.source_url] : null);
       await db.execute(sql`
-        INSERT INTO events (title, description, category, severity, confidence, latitude, longitude, timestamp, sources, source_url)
+        INSERT INTO events (title, description, category, severity, confidence, latitude, longitude, timestamp, sources, source_urls)
         VALUES (${e.title}, ${e.description}, ${e.category}, ${e.severity}, ${e.confidence},
                 ${e.latitude}, ${e.longitude}, ${new Date(e.timestamp).toISOString()}, ${JSON.stringify(e.sources)},
-                ${e.source_url || e.sourceUrl || null})
+                ${urls ? JSON.stringify(urls) : null})
       `);
     }
   }

@@ -435,19 +435,30 @@ function EventDetail({ event, onClose }: { event: Event; onClose: () => void }) 
             </div>
           </div>
 
-          {event.sourceUrl && (
+          {event.sourceUrls && event.sourceUrls.length > 0 && (
             <div>
-              <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-2">SOURCE LINK</div>
-              <a
-                href={event.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                data-testid="link-source-url"
-                className="flex items-center gap-1.5 text-xs text-primary hover:underline font-mono truncate"
-              >
-                <ExternalLink className="w-3 h-3 shrink-0" />
-                <span className="truncate">{event.sourceUrl}</span>
-              </a>
+              <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-2">
+                SOURCE REFERENCES ({event.sourceUrls.length})
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {event.sourceUrls.map((url, i) => {
+                  let domain = url;
+                  try { domain = new URL(url).hostname.replace("www.", ""); } catch {}
+                  return (
+                    <a
+                      key={i}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-testid={`link-source-url-${i}`}
+                      className="flex items-center gap-1.5 text-xs text-primary hover:underline font-mono group"
+                    >
+                      <ExternalLink className="w-3 h-3 shrink-0 opacity-60 group-hover:opacity-100" />
+                      <span className="truncate">{domain}</span>
+                    </a>
+                  );
+                })}
+              </div>
             </div>
           )}
 
