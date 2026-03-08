@@ -171,16 +171,27 @@ async function applyDevSnapshot() {
   const snapshot = JSON.parse(fs.readFileSync(snapshotPath, "utf8"));
   const snapshotEvents: any[] = snapshot.events || [];
   const snapshotCountries: any[] = snapshot.countries || [];
+  const snapshotVersion: string = snapshot.exportedAt || "";
 
-  const countResult = await db.execute(sql`SELECT COUNT(*)::int as count FROM events`) as any;
-  const currentCount = Number(countResult?.rows?.[0]?.count ?? countResult?.[0]?.count ?? 0);
+  // Ensure the settings table exists to track which snapshot version has been applied
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key varchar(255) PRIMARY KEY,
+      value text NOT NULL
+    )
+  `);
 
-  if (currentCount >= snapshotEvents.length - 5) {
-    console.log(`[snapshot] DB has ${currentCount} events (snapshot: ${snapshotEvents.length}) — no sync needed`);
+  const versionResult = await db.execute(sql`
+    SELECT value FROM app_settings WHERE key = 'snapshot_version'
+  `) as any;
+  const storedVersion: string = versionResult?.rows?.[0]?.value ?? versionResult?.[0]?.value ?? "";
+
+  if (storedVersion === snapshotVersion) {
+    console.log(`[snapshot] Already at version ${snapshotVersion} — no sync needed`);
     return;
   }
 
-  console.log(`[snapshot] DB has ${currentCount} events but snapshot has ${snapshotEvents.length} — applying snapshot...`);
+  console.log(`[snapshot] Snapshot version changed (${storedVersion || "none"} → ${snapshotVersion}) — applying ${snapshotEvents.length} events...`);
 
   // Clear existing data and repopulate from snapshot
   await db.execute(sql`DELETE FROM events`);
@@ -207,6 +218,12 @@ async function applyDevSnapshot() {
       VALUES (${c.code}, ${c.name}, ${c.instability_score}, ${c.momentum_change}, ${JSON.stringify(c.primary_drivers)}, ${c.confidence_level})
     `);
   }
+
+  // Store the applied snapshot version so future restarts skip re-sync
+  await db.execute(sql`
+    INSERT INTO app_settings (key, value) VALUES ('snapshot_version', ${snapshotVersion})
+    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+  `);
 
   console.log(`[snapshot] Applied ${snapshotEvents.length} events and ${snapshotCountries.length} countries from dev snapshot`);
 }
