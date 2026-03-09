@@ -1057,36 +1057,10 @@ const AI_TREND_SEEDS = [
   },
 ];
 
-const BROKEN_URL_FRAGMENTS = [
-  "ft.com/content/mgx-blackrock-aligned-data-centers",
-  "techcrunch.com/2026/02/12/anthropic-raises-30-billion-series-g",
-  "aramco.com/en/news-media/news/2025/aramco-humain-agreement",
-  "commerce.gov/news/press-releases/2024/04/commerce-department-announces",
-  "globalswf.com/reports/2025-annual-report",
-  "news.microsoft.com/2024/04/15/microsoft-and-g42-announce-strategic-partnership",
-  "whitehouse.gov/presidential-actions/2025/12/ensuring-a-national-policy-framework",
-  "g7hiroshima.go.jp",
-  "openai.com/index/openai-announces-40-billion-funding-round",
-  "qia.qa/news",
-  "kia.gov.kw/en/news",
-  "mcit.gov.eg/en/ai-strategy",
-  "imf.org/en/Publications/Staff-Discussion-Notes",
-  "pif.gov.sa/en/news",
-  "reuters.com/technology/artificial-intelligence/pentagon-designates-anthropic-supply-chain-risk",
-  "reuters.com/technology/nvidia-halts-china-bound-h200-output-ft-reports",
-  "microsoft.com/en-us/investor",
-  "ir.aboutamazon.com",
-  "ir.blackrock.com/news-and-events/press-releases/default",
-  "news.microsoft.com/source/2024/04/16/microsoft-invests-1-5-billion",
-  "sec.gov/cgi-bin/browse-edgar",
-  "www.chips.gov",
-  "ai.gov.ae/strategy/",
-  "investor.nvidia.com",
-  "g42.ai/resources/news/global-tech-alliance-launches-stargate-uae",
-  "aiindex.stanford.edu",
-  "groq.com/news/groq-humain-partnership",
-  "preliminary-terms-intel-2024-04",
-];
+// Bump this version string whenever seed data (URLs, dates, content) changes.
+// Production will re-seed automatically on next deploy when this doesn't match
+// the value stored in app_settings under key 'ai_trends_seed_version'.
+const AI_TRENDS_SEED_VERSION = "2026-03-09-v5";
 
 async function seedAiTrends() {
   await db.execute(sql`
@@ -1111,20 +1085,36 @@ async function seedAiTrends() {
     )
   `);
 
+  // Check stored seed version — re-seed whenever it doesn't match the current version
+  const versionRow = await db.execute(sql`
+    SELECT value FROM app_settings WHERE key = 'ai_trends_seed_version'
+  `);
+  const storedVersion = (versionRow.rows[0] as any)?.value ?? null;
+  const versionMismatch = storedVersion !== AI_TRENDS_SEED_VERSION;
+
   const existing = await storage.getAiTrends();
-  const hasBrokenUrls = existing.some(t =>
-    t.sourceUrl && BROKEN_URL_FRAGMENTS.some(frag => t.sourceUrl!.includes(frag))
-  );
-  if (!hasBrokenUrls && existing.length >= AI_TREND_SEEDS.length - 3) {
-    console.log(`[ai-trends] Already have ${existing.length} records — skipping seed`);
+  const needsSeed = versionMismatch || existing.length < AI_TREND_SEEDS.length - 3;
+
+  if (!needsSeed) {
+    console.log(`[ai-trends] Seed version ${AI_TRENDS_SEED_VERSION} current — skipping (${existing.length} records)`);
     return;
   }
-  if (hasBrokenUrls) {
-    console.log(`[ai-trends] Detected stale/broken source URLs — re-seeding with corrected data`);
+
+  if (versionMismatch) {
+    console.log(`[ai-trends] Seed version changed (${storedVersion ?? "none"} → ${AI_TRENDS_SEED_VERSION}) — re-seeding`);
   }
+
   await storage.deleteAllAiTrends();
   for (const t of AI_TREND_SEEDS) {
     await storage.createAiTrend(t as any);
   }
-  console.log(`[ai-trends] Seeded ${AI_TREND_SEEDS.length} AI trend records`);
+
+  // Store the new seed version so future restarts skip the re-seed
+  await db.execute(sql`
+    INSERT INTO app_settings (key, value)
+    VALUES ('ai_trends_seed_version', ${AI_TRENDS_SEED_VERSION})
+    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+  `);
+
+  console.log(`[ai-trends] Seeded ${AI_TREND_SEEDS.length} records at version ${AI_TRENDS_SEED_VERSION}`);
 }
