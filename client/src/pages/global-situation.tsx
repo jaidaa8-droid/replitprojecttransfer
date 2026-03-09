@@ -447,13 +447,93 @@ function AnalysisFullScreen({
       {/* Tabbed body */}
       <div className="flex-1 overflow-hidden">
         {(loading || !data) ? (
-          <div className="h-full flex flex-col items-center justify-center gap-4 text-muted-foreground">
-            <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-            <div className="text-xs font-mono tracking-widest text-center">
-              <div className="text-foreground font-semibold mb-1">RUNNING AI SYNTHESIS</div>
-              <div>Analyzing geopolitical implications...</div>
+          <ScrollArea className="h-full">
+            <div className="max-w-3xl mx-auto px-5 py-6 space-y-5">
+
+              {/* AI processing banner */}
+              <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-primary/30 bg-primary/5">
+                <div className="w-4 h-4 rounded-full border-2 border-primary border-t-transparent animate-spin shrink-0" />
+                <div className="text-xs font-mono">
+                  <span className="text-primary font-semibold">RUNNING AI SYNTHESIS</span>
+                  <span className="text-muted-foreground ml-2">— analyzing geopolitical implications...</span>
+                </div>
+              </div>
+
+              {/* Metadata grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-secondary/30 p-3 rounded-lg border border-border/50">
+                  <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-1">CATEGORY</div>
+                  <div className="font-mono text-xs">{event.category}</div>
+                </div>
+                <div className="bg-secondary/30 p-3 rounded-lg border border-border/50">
+                  <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-1">TIMESTAMP</div>
+                  <div className="font-mono text-xs">{format(new Date(event.timestamp), "MMM dd HH:mm")}</div>
+                </div>
+                <div className="bg-secondary/30 p-3 rounded-lg border border-border/50">
+                  <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-1">COORDINATES</div>
+                  <div className="font-mono text-xs">{event.latitude.toFixed(2)}°, {event.longitude.toFixed(2)}°</div>
+                </div>
+                <div className="bg-secondary/30 p-3 rounded-lg border border-border/50">
+                  <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-1">SEVERITY</div>
+                  <div className="font-mono text-xs font-bold" style={{ color: severityColor(event.severity) }}>
+                    {SEVERITY_LABELS[event.severity]}
+                  </div>
+                </div>
+              </div>
+
+              {/* Confidence */}
+              <div>
+                <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-2">CONFIDENCE</div>
+                <ConfidenceMeter value={event.confidence} />
+              </div>
+
+              {/* Intelligence summary */}
+              <div>
+                <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-2">INTELLIGENCE SUMMARY</div>
+                <p className="text-xs text-muted-foreground leading-relaxed">{event.description}</p>
+              </div>
+
+              {/* Sources */}
+              <div>
+                <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-2">SOURCES</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {event.sources.map((src, i) => (
+                    <span key={i} className="px-2 py-0.5 bg-secondary rounded text-xs font-mono border border-border">
+                      {src}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Source URLs */}
+              {event.sourceUrls && event.sourceUrls.length > 0 && (
+                <div>
+                  <div className="text-[10px] text-muted-foreground font-mono tracking-widest mb-2">
+                    SOURCE REFERENCES ({event.sourceUrls.length})
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    {event.sourceUrls.map((url, i) => {
+                      let domain = url;
+                      try { domain = new URL(url).hostname.replace("www.", ""); } catch {}
+                      return (
+                        <a
+                          key={i}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-xs text-primary hover:underline font-mono group"
+                        >
+                          <ExternalLink className="w-3 h-3 shrink-0 opacity-60 group-hover:opacity-100" />
+                          <span className="truncate">{domain}</span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
             </div>
-          </div>
+          </ScrollArea>
         ) : (
         <Tabs defaultValue="analogues" className="h-full flex flex-col">
           <div className="shrink-0 px-5 pt-4 pb-0 border-b border-border/40">
