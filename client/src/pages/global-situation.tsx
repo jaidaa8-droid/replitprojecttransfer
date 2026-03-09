@@ -52,6 +52,9 @@ export default function GlobalSituation() {
   const [severityFilter, setSeverityFilter] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [feedOpen, setFeedOpen] = useState(true);
+  const [analysisOverlayEvent, setAnalysisOverlayEvent] = useState<Event | null>(null);
+
+  const analyzeMutation = useAnalyzeEvent();
 
   const { data: events = [], isLoading, isFetching, refetch } = useEvents(timeWindow);
 
@@ -76,7 +79,31 @@ export default function GlobalSituation() {
     [events, selectedEventId]
   );
 
+  const handleAnalyze = (event: Event) => {
+    setAnalysisOverlayEvent(event);
+    if (!analyzeMutation.data || (analyzeMutation.variables as any)?.event_id !== event.id) {
+      analyzeMutation.reset();
+      analyzeMutation.mutate({ event_id: event.id });
+    }
+  };
+
+  const handleCloseAnalysis = () => {
+    setAnalysisOverlayEvent(null);
+    setSelectedEventId(null);
+  };
+
   return (
+    <>
+    <AnimatePresence>
+      {analysisOverlayEvent && (
+        <AnalysisFullScreen
+          event={analysisOverlayEvent}
+          data={analyzeMutation.data ?? null}
+          loading={analyzeMutation.isPending}
+          onClose={handleCloseAnalysis}
+        />
+      )}
+    </AnimatePresence>
     <AppShell>
       <div className="relative w-full h-full flex flex-col md:flex-row overflow-hidden">
 
@@ -204,7 +231,9 @@ export default function GlobalSituation() {
                 <EventDetail
                   event={selectedEvent}
                   onClose={() => setSelectedEventId(null)}
-                  onCloseAll={() => setSelectedEventId(null)}
+                  onAnalyze={handleAnalyze}
+                  analysisLoading={analyzeMutation.isPending}
+                  analysisReady={!!analyzeMutation.data && (analyzeMutation.variables as any)?.event_id === selectedEvent.id}
                 />
               </motion.div>
             )}
@@ -370,6 +399,7 @@ export default function GlobalSituation() {
         </div>
       </div>
     </AppShell>
+    </>
   );
 }
 
@@ -377,10 +407,12 @@ export default function GlobalSituation() {
 function AnalysisFullScreen({
   event,
   data,
+  loading,
   onClose,
 }: {
   event: Event;
-  data: NonNullable<ReturnType<typeof useAnalyzeEvent>["data"]>;
+  data: ReturnType<typeof useAnalyzeEvent>["data"] | null;
+  loading: boolean;
   onClose: () => void;
 }) {
   return (
@@ -414,6 +446,15 @@ function AnalysisFullScreen({
 
       {/* Tabbed body */}
       <div className="flex-1 overflow-hidden">
+        {(loading || !data) ? (
+          <div className="h-full flex flex-col items-center justify-center gap-4 text-muted-foreground">
+            <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            <div className="text-xs font-mono tracking-widest text-center">
+              <div className="text-foreground font-semibold mb-1">RUNNING AI SYNTHESIS</div>
+              <div>Analyzing geopolitical implications...</div>
+            </div>
+          </div>
+        ) : (
         <Tabs defaultValue="analogues" className="h-full flex flex-col">
           <div className="shrink-0 px-5 pt-4 pb-0 border-b border-border/40">
             <TabsList className="bg-secondary/40 h-auto p-0.5 gap-0.5">
@@ -520,28 +561,23 @@ function AnalysisFullScreen({
             </div>
           </ScrollArea>
         </Tabs>
+        )}
       </div>
     </motion.div>
   );
 }
 
 /* ─── Event Detail Panel ──────────────────────────────────────────── */
-function EventDetail({ event, onClose, onCloseAll }: { event: Event; onClose: () => void; onCloseAll: () => void }) {
-  const analyzeMutation = useAnalyzeEvent();
-  const [showFullAnalysis, setShowFullAnalysis] = useState(false);
+function EventDetail({ event, onClose, onAnalyze, analysisLoading, analysisReady }: {
+  event: Event;
+  onClose: () => void;
+  onAnalyze: (event: Event) => void;
+  analysisLoading: boolean;
+  analysisReady: boolean;
+}) {
 
   return (
     <>
-      <AnimatePresence>
-        {showFullAnalysis && analyzeMutation.data && (
-          <AnalysisFullScreen
-            event={event}
-            data={analyzeMutation.data}
-            onClose={() => { setShowFullAnalysis(false); onCloseAll(); }}
-          />
-        )}
-      </AnimatePresence>
-
       <div className="p-3 border-b border-border bg-secondary/30 flex items-center gap-2 shrink-0">
         <Button variant="ghost" size="icon" onClick={onClose} data-testid="button-close-detail">
           <ChevronLeft className="w-4 h-4" />
@@ -629,19 +665,9 @@ function EventDetail({ event, onClose, onCloseAll }: { event: Event; onClose: ()
           <Button
             data-testid="button-analyze"
             className="w-full gap-2"
-            onClick={() => {
-              if (analyzeMutation.data) {
-                setShowFullAnalysis(true);
-              } else {
-                analyzeMutation.mutate(
-                  { event_id: event.id },
-                  { onSuccess: () => setShowFullAnalysis(true) }
-                );
-              }
-            }}
-            disabled={analyzeMutation.isPending}
+            onClick={() => onAnalyze(event)}
           >
-            {analyzeMutation.isPending ? (
+            {analysisLoading ? (
               <>
                 <div className="w-3.5 h-3.5 rounded-full border-2 border-background border-t-transparent animate-spin" />
                 PROCESSING...
@@ -649,7 +675,7 @@ function EventDetail({ event, onClose, onCloseAll }: { event: Event; onClose: ()
             ) : (
               <>
                 <BrainCircuit className="w-4 h-4" />
-                {analyzeMutation.data ? "VIEW IMPLICATIONS" : "ANALYZE IMPLICATIONS"}
+                {analysisReady ? "VIEW IMPLICATIONS" : "ANALYZE IMPLICATIONS"}
               </>
             )}
           </Button>
