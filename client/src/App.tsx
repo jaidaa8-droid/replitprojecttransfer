@@ -9,6 +9,7 @@ import GlobalSituation from "./pages/global-situation";
 import GlobalInsights from "./pages/global-insights";
 import CountryInstability from "./pages/country-instability";
 import SectorHeatmap from "./pages/sector-heatmap";
+import AiTrends from "./pages/ai-trends";
 
 function Router() {
   return (
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/insights" component={GlobalInsights} />
       <Route path="/countries" component={CountryInstability} />
       <Route path="/sectors" component={SectorHeatmap} />
+      <Route path="/ai-trends" component={AiTrends} />
       <Route component={NotFound} />
     </Switch>
   );

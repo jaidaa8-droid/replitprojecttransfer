@@ -11,7 +11,7 @@ The application displays global events on an interactive map, categorized by sev
 - **Intelligence Brief** (`/insights`) — AI-generated strategic briefing synthesis for a selected time window
 - **Country Instability** (`/countries`) — Ranked table of nation-state instability scores with momentum indicators
 - **Sector Heatmap** (`/sectors`) — Cross-matrix risk scores by industry vertical and geopolitical region
-- **Strategic Oversight** (`/oversight`) — Card grid of high-severity events requiring immediate attention
+- **AI Trends** (`/ai-trends`) — Executive-grade AI investment intelligence dashboard for sovereign wealth fund and institutional audiences; shows investment flows by region/sector, Board/IC Brief, policy tracker, infrastructure signals, and sortable deals table; sourced exclusively from primary institutional sources (Stanford AI Index, IMF, OECD, WIPO, IEA, government/IR materials)
 
 ---
 

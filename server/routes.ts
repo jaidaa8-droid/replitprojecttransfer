@@ -5,7 +5,7 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import OpenAI from "openai";
 import { fetchAndIngestNews, startNewsFetchScheduler } from "./news-fetcher";
-import { events, countries, sectorRisks } from "@shared/schema";
+import { events, countries, sectorRisks, aiTrends } from "@shared/schema";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
 import fs from "fs";
@@ -415,7 +415,319 @@ Return strictly a JSON object matching:
     }
   });
 
+  app.get("/api/ai-trends", async (req, res) => {
+    try {
+      const { region, category, sector } = req.query as Record<string, string>;
+      const trends = await storage.getAiTrends({ region, category, sector });
+      res.json(trends);
+    } catch {
+      res.status(500).json({ message: "Internal Error" });
+    }
+  });
+
+  seedAiTrends().catch(console.error);
   startNewsFetchScheduler();
 
   return httpServer;
+}
+
+const AI_TREND_SEEDS = [
+  // ── INVESTMENT / FUNDING ──────────────────────────────────────────────────
+  {
+    category: "Investment", title: "Microsoft commits $13 billion cumulative investment in OpenAI",
+    description: "Microsoft has confirmed cumulative investment of approximately $13 billion in OpenAI across multiple tranches since 2019, cementing a long-term commercial and research partnership that includes exclusive Azure cloud hosting rights and a proportional profit-sharing structure.",
+    region: "North America", sector: "Artificial Intelligence", amountUsd: 13.0, investmentType: "Funding Round",
+    entities: ["Microsoft", "OpenAI"], sourceName: "Microsoft Investor Relations", sourceType: "Investor Relations",
+    sourceUrl: "https://www.microsoft.com/en-us/investor", publicationDate: new Date("2023-01-23"),
+    updatedAt: new Date("2024-04-01"), significance: 5, tags: ["LLM", "Cloud", "Partnership"],
+    strategicImplication: "Cements US hyperscaler dominance in frontier AI; sovereign wealth funds should weight Azure and MSFT enterprise exposure as a direct AI infrastructure proxy.",
+  },
+  {
+    category: "Investment", title: "Amazon invests $4 billion in Anthropic",
+    description: "Amazon committed up to $4 billion to Anthropic, securing rights to use Anthropic models in AWS products and establishing AWS as Anthropic's primary cloud provider. The deal gives Amazon a meaningful equity stake in one of the two leading frontier AI safety labs.",
+    region: "North America", sector: "Artificial Intelligence", amountUsd: 4.0, investmentType: "Funding Round",
+    entities: ["Amazon", "Anthropic", "AWS"], sourceName: "Amazon.com Inc. Press Release", sourceType: "Investor Relations",
+    sourceUrl: "https://ir.aboutamazon.com", publicationDate: new Date("2023-09-25"),
+    updatedAt: new Date("2024-03-01"), significance: 5, tags: ["LLM", "Cloud", "Safety"],
+    strategicImplication: "AWS–Anthropic axis positions Amazon as the enterprise-safe AI cloud; indicative of hyperscaler race to lock in frontier model access ahead of anticipated demand surge.",
+  },
+  {
+    category: "Investment", title: "Google commits $2 billion investment in Anthropic",
+    description: "Google deepened its stake in Anthropic with a $2 billion commitment following Amazon's lead investment, underscoring competitive pressure to secure access to frontier AI capabilities outside of Google's own DeepMind division.",
+    region: "North America", sector: "Artificial Intelligence", amountUsd: 2.0, investmentType: "Funding Round",
+    entities: ["Google", "Alphabet", "Anthropic"], sourceName: "Anthropic Press Release", sourceType: "Investor Relations",
+    sourceUrl: "https://www.anthropic.com", publicationDate: new Date("2024-02-03"),
+    updatedAt: new Date("2024-04-01"), significance: 4, tags: ["LLM", "Cloud", "Competition"],
+    strategicImplication: "Dual hyperscaler backing of Anthropic is unprecedented; creates alignment risk and may draw regulatory scrutiny on concentrated AI investment by Big Tech.",
+  },
+  {
+    category: "Investment", title: "xAI raises $6 billion Series B",
+    description: "Elon Musk's xAI closed a $6 billion Series B round from a syndicate of institutional investors including Valor Equity Partners and Andreessen Horowitz, valuing the company at $24 billion. Proceeds fund Grok model development and the Memphis Colossus supercluster.",
+    region: "North America", sector: "Artificial Intelligence", amountUsd: 6.0, investmentType: "Funding Round",
+    entities: ["xAI", "Elon Musk", "Andreessen Horowitz"], sourceName: "xAI Official Press Release", sourceType: "Investor Relations",
+    sourceUrl: "https://x.ai", publicationDate: new Date("2024-05-26"),
+    updatedAt: new Date("2024-06-01"), significance: 4, tags: ["LLM", "Compute", "Grok"],
+    strategicImplication: "Third major US frontier AI lab now well-capitalised; competition for GPU supply and talent intensifies, supporting semiconductor sector overweight thesis.",
+  },
+  {
+    category: "Partnership", title: "Microsoft invests $1.5 billion in UAE's G42",
+    description: "Microsoft announced a $1.5 billion strategic investment in G42, Abu Dhabi's state-linked AI conglomerate, gaining an equity stake while committing to bring advanced AI and cloud services to the UAE. The deal was brokered with US government awareness and included governance commitments on technology access.",
+    region: "Middle East", sector: "Artificial Intelligence", amountUsd: 1.5, investmentType: "Partnership",
+    entities: ["Microsoft", "G42", "UAE", "Abu Dhabi"], sourceName: "Microsoft Official Blog", sourceType: "Investor Relations",
+    sourceUrl: "https://blogs.microsoft.com", publicationDate: new Date("2024-05-01"),
+    updatedAt: new Date("2024-05-15"), significance: 5, tags: ["Sovereign AI", "Gulf", "Geopolitics"],
+    strategicImplication: "US–Gulf AI technology corridor emerging; SWF executives should monitor G42 as a bellwether for state-aligned AI investment in the Middle East and its regulatory/export-control dimensions.",
+  },
+  {
+    category: "Investment", title: "Scale AI raises $1 billion Series F at $13.8 billion valuation",
+    description: "Scale AI closed a $1 billion Series F led by Accel and including Amazon and Meta, valuing the data-labelling and AI infrastructure company at $13.8 billion. Scale provides critical training data pipelines for US Department of Defense and major frontier AI labs.",
+    region: "North America", sector: "Artificial Intelligence", amountUsd: 1.0, investmentType: "Funding Round",
+    entities: ["Scale AI", "Accel", "Amazon", "Meta"], sourceName: "Scale AI Press Release", sourceType: "Investor Relations",
+    sourceUrl: "https://scale.com", publicationDate: new Date("2024-05-21"),
+    updatedAt: new Date("2024-06-01"), significance: 4, tags: ["Data", "Defense", "Infrastructure"],
+    strategicImplication: "Data annotation and AI evaluation infrastructure increasingly strategic; dual-use civilian-defence angle warrants attention from sovereign defence-technology allocators.",
+  },
+  {
+    category: "Investment", title: "Mistral AI raises $1.1 billion Series B",
+    description: "Paris-based Mistral AI raised €1.04 billion (~$1.1B) in a Series B round valuing the company at €5.8 billion, with investors including General Catalyst and BNP Paribas. Mistral is the leading European frontier model company and a central asset in EU AI sovereignty strategy.",
+    region: "Europe", sector: "Artificial Intelligence", amountUsd: 1.1, investmentType: "Funding Round",
+    entities: ["Mistral AI", "General Catalyst", "BNP Paribas"], sourceName: "Mistral AI Press Release", sourceType: "Investor Relations",
+    sourceUrl: "https://mistral.ai", publicationDate: new Date("2024-06-11"),
+    updatedAt: new Date("2024-07-01"), significance: 4, tags: ["Open Source", "Europe", "Sovereignty"],
+    strategicImplication: "Mistral is Europe's best-capitalised native frontier AI asset; relevant to EU sovereign tech mandates and any allocator seeking non-US AI model exposure.",
+  },
+  {
+    category: "Investment", title: "Autonomous vehicle AI firm Wayve raises $1.05 billion",
+    description: "UK-based Wayve closed a $1.05 billion Series C co-led by SoftBank, NVIDIA, and Microsoft, becoming one of the best-funded European autonomous vehicle AI companies. Wayve's embodied AI approach is distinct from sensor-heavy competitors.",
+    region: "Europe", sector: "Transportation", amountUsd: 1.05, investmentType: "Funding Round",
+    entities: ["Wayve", "SoftBank", "NVIDIA", "Microsoft"], sourceName: "Wayve Press Release / SoftBank IR", sourceType: "Investor Relations",
+    sourceUrl: "https://wayve.ai", publicationDate: new Date("2024-05-07"),
+    updatedAt: new Date("2024-06-01"), significance: 3, tags: ["Autonomous Vehicles", "Embodied AI", "UK"],
+    strategicImplication: "Deep-learning-centric AV approach gaining institutional validation; NVIDIA's involvement underlines GPU-centric value chain dominance across mobility AI.",
+  },
+  {
+    category: "Investment", title: "France commits €2.5 billion national AI investment plan",
+    description: "French President Macron announced a €2.5 billion national AI plan focused on sovereign compute capacity, AI in public services, and support for AI startups. The plan includes direct subsidies for GPU cluster infrastructure and R&D partnerships with French universities.",
+    region: "Europe", sector: "Artificial Intelligence", amountUsd: 2.7, investmentType: "Government",
+    entities: ["France", "Élysée", "Bpifrance"], sourceName: "Élysée Palace Official Statement", sourceType: "Government",
+    sourceUrl: "https://www.elysee.fr", publicationDate: new Date("2024-02-23"),
+    updatedAt: new Date("2024-04-01"), significance: 4, tags: ["Sovereign AI", "EU", "Compute"],
+    strategicImplication: "European state AI capital deployment accelerating; follow-on allocation opportunities in French AI infrastructure and public-sector AI services providers.",
+  },
+  {
+    category: "Investment", title: "Singapore launches S$1 billion National AI Strategy 2.0 compute investment",
+    description: "Singapore's Smart Nation initiative under IMDA committed over S$1 billion (~$750M USD) to AI compute infrastructure, model development, and talent as part of its National AI Strategy 2.0, positioning Singapore as the premier AI hub in Southeast Asia.",
+    region: "Asia Pacific", sector: "Artificial Intelligence", amountUsd: 0.75, investmentType: "Government",
+    entities: ["Singapore", "IMDA", "Smart Nation"], sourceName: "Singapore IMDA / Smart Nation", sourceType: "Government",
+    sourceUrl: "https://www.imda.gov.sg", publicationDate: new Date("2023-12-04"),
+    updatedAt: new Date("2024-03-01"), significance: 4, tags: ["Sovereign AI", "Southeast Asia", "Compute"],
+    strategicImplication: "Singapore's compute infrastructure position creates opportunity for SWF co-investment in AI-adjacent data centre and technology real estate in the region.",
+  },
+  {
+    category: "Investment", title: "India approves ₹10,372 crore India AI Mission for sovereign compute",
+    description: "The Indian Cabinet approved the India AI Mission with a ₹10,372 crore (~$1.25B USD) outlay to build 10,000+ GPU public compute capacity, develop AI datasets, and create an AI startup ecosystem. Execution is led by MeitY and the newly created IndiaAI mission.",
+    region: "Asia Pacific", sector: "Artificial Intelligence", amountUsd: 1.25, investmentType: "Government",
+    entities: ["India", "MeitY", "IndiaAI"], sourceName: "Ministry of Electronics & Information Technology (MeitY)", sourceType: "Government",
+    sourceUrl: "https://www.meity.gov.in", publicationDate: new Date("2024-03-07"),
+    updatedAt: new Date("2024-04-01"), significance: 5, tags: ["Sovereign AI", "South Asia", "Compute"],
+    strategicImplication: "India's sovereign AI compute ambition positions it as a strategic partner for GPU supply chains and AI model development at national scale; relevant for SWF India tech allocations.",
+  },
+  {
+    category: "Investment", title: "Saudi Arabia launches HUMAIN AI company with $100 billion commitment",
+    description: "Saudi Arabia's Crown Prince launched HUMAIN, a state AI company under PIF, with an initial $1 billion capital and ambitions to deploy up to $100 billion in AI infrastructure, model development, and data centre investment as part of Vision 2030's digital economy agenda.",
+    region: "Middle East", sector: "Artificial Intelligence", amountUsd: 100.0, investmentType: "Government",
+    entities: ["Saudi Arabia", "PIF", "HUMAIN", "SDAIA"], sourceName: "Saudi Press Agency", sourceType: "Government",
+    sourceUrl: "https://www.spa.gov.sa", publicationDate: new Date("2024-10-01"),
+    updatedAt: new Date("2025-01-01"), significance: 5, tags: ["Sovereign AI", "Gulf", "PIF", "Vision 2030"],
+    strategicImplication: "Saudi Arabia's HUMAIN creates a direct SWF-owned AI vehicle; co-investment and partnership opportunities for institutional peers, particularly in GPU procurement and data centre real estate.",
+  },
+  // ── M&A ──────────────────────────────────────────────────────────────────
+  {
+    category: "M&A", title: "Google acquires non-exclusive Character.AI licence in $2.7 billion deal",
+    description: "Google secured a non-exclusive licence to Character.AI's technology and hired Character.AI's founders Noam Shazeer and Daniel De Freitas for approximately $2.7 billion, in what regulators and commentators called a 'soft acquisition' designed to circumvent merger review thresholds.",
+    region: "North America", sector: "Artificial Intelligence", amountUsd: 2.7, investmentType: "M&A",
+    entities: ["Google", "Alphabet", "Character.AI"], sourceName: "Bloomberg / Character.AI statement", sourceType: "News Wire",
+    sourceUrl: "https://www.bloomberg.com", publicationDate: new Date("2024-08-02"),
+    updatedAt: new Date("2024-09-01"), significance: 4, tags: ["M&A", "Talent", "Regulatory Arbitrage"],
+    strategicImplication: "Talent-acquisition structures sidestepping merger review are an emerging pattern; expect regulatory scrutiny to tighten on AI acqui-hire transactions globally.",
+  },
+  {
+    category: "M&A", title: "Amazon hires Adept AI core team in $500 million asset acquisition",
+    description: "Amazon hired the founding team and key staff of AI research lab Adept AI and acquired a non-exclusive licence to Adept's models and technology for approximately $500 million, following a similar pattern to Microsoft's Inflection AI acqui-hire.",
+    region: "North America", sector: "Artificial Intelligence", amountUsd: 0.5, investmentType: "M&A",
+    entities: ["Amazon", "Adept AI", "AWS"], sourceName: "Adept AI Press Release / Bloomberg", sourceType: "News Wire",
+    sourceUrl: "https://www.adept.ai", publicationDate: new Date("2024-06-27"),
+    updatedAt: new Date("2024-07-01"), significance: 3, tags: ["M&A", "Talent", "Cloud"],
+    strategicImplication: "AI talent concentration in hyperscalers deepening; independent AI lab valuations increasingly tied to strategic acqui-hire optionality.",
+  },
+  // ── IPO ──────────────────────────────────────────────────────────────────
+  {
+    category: "IPO", title: "CoreWeave files for IPO targeting $19 billion valuation",
+    description: "CoreWeave, the GPU cloud provider backed by NVIDIA and Magnetar, filed an S-1 with the SEC targeting a valuation of approximately $19 billion. The company provides specialised NVIDIA GPU clusters for AI training and inference workloads to enterprise clients.",
+    region: "North America", sector: "Infrastructure", amountUsd: 19.0, investmentType: "IPO",
+    entities: ["CoreWeave", "NVIDIA", "SEC"], sourceName: "SEC S-1 Filing — CoreWeave", sourceType: "Regulatory",
+    sourceUrl: "https://www.sec.gov", publicationDate: new Date("2024-11-01"),
+    updatedAt: new Date("2025-03-01"), significance: 4, tags: ["IPO", "GPU Cloud", "Infrastructure"],
+    strategicImplication: "CoreWeave IPO is a bellwether for AI infrastructure equity markets; public-market pricing of GPU compute capacity will set benchmarks for private data centre valuations.",
+  },
+  // ── POLICY ───────────────────────────────────────────────────────────────
+  {
+    category: "Policy", title: "EU AI Act adopted — world's first comprehensive AI regulatory framework",
+    description: "The European Parliament passed the EU AI Act with 523 votes in favour, establishing a risk-based regulatory framework for AI systems across the EU. It bans certain AI applications outright, imposes strict obligations on high-risk AI, and requires transparency for general-purpose AI models above compute thresholds.",
+    region: "Europe", sector: "Artificial Intelligence", amountUsd: null, investmentType: null,
+    entities: ["European Union", "European Parliament"], sourceName: "European Parliament Official Record", sourceType: "Regulatory",
+    sourceUrl: "https://www.europarl.europa.eu", publicationDate: new Date("2024-03-13"),
+    updatedAt: new Date("2024-08-01"), significance: 5, tags: ["Regulation", "AI Act", "Compliance"],
+    strategicImplication: "EU AI Act compliance obligations reshape the AI product and deployment landscape globally; portfolio companies with EU operations require AI governance investment.",
+  },
+  {
+    category: "Policy", title: "US Executive Order 14110: Safe, Secure, and Trustworthy AI",
+    description: "President Biden signed Executive Order 14110 directing federal agencies to establish AI safety standards, requiring frontier model developers to share safety test results with the government before public deployment, and initiating a national AI talent pipeline strategy.",
+    region: "North America", sector: "Artificial Intelligence", amountUsd: null, investmentType: null,
+    entities: ["US Government", "White House", "NIST"], sourceName: "White House — Federal Register", sourceType: "Government",
+    sourceUrl: "https://www.whitehouse.gov/briefing-room/presidential-actions", publicationDate: new Date("2023-10-30"),
+    updatedAt: new Date("2024-01-01"), significance: 5, tags: ["Regulation", "Safety", "US Policy"],
+    strategicImplication: "Pre-deployment safety reporting requirement creates compliance infrastructure market; also signals US intent to maintain AI leadership through regulatory standard-setting.",
+  },
+  {
+    category: "Policy", title: "China's CAC implements Interim Measures for Generative AI Services",
+    description: "China's Cyberspace Administration (CAC) brought into force the Interim Measures for the Management of Generative AI Services, requiring providers to register with regulators, conduct security assessments, and ensure outputs align with 'socialist core values'. The framework applies to all generative AI services available to users in China.",
+    region: "Asia Pacific", sector: "Artificial Intelligence", amountUsd: null, investmentType: null,
+    entities: ["China", "CAC", "Cyberspace Administration of China"], sourceName: "Cyberspace Administration of China (CAC)", sourceType: "Regulatory",
+    sourceUrl: "https://www.cac.gov.cn", publicationDate: new Date("2023-08-15"),
+    updatedAt: new Date("2024-01-01"), significance: 5, tags: ["Regulation", "China", "Generative AI"],
+    strategicImplication: "China's generative AI regulation creates a distinct domestic AI product market; foreign AI providers face material barriers, favouring domestic champions such as Baidu Ernie and Alibaba Qwen.",
+  },
+  {
+    category: "Policy", title: "UK establishes world's first AI Safety Institute",
+    description: "The UK Department for Science, Innovation and Technology (DSIT) launched the AI Safety Institute (AISI) at Bletchley Park, tasked with evaluating frontier AI models for safety risks. AISI is the first government body dedicated to advanced AI system evaluation and became an international standard-setter.",
+    region: "Europe", sector: "Artificial Intelligence", amountUsd: null, investmentType: null,
+    entities: ["UK Government", "DSIT", "AI Safety Institute"], sourceName: "UK DSIT Official Announcement", sourceType: "Government",
+    sourceUrl: "https://www.gov.uk/dsit", publicationDate: new Date("2023-11-01"),
+    updatedAt: new Date("2024-06-01"), significance: 4, tags: ["AI Safety", "UK", "Governance"],
+    strategicImplication: "AISI model evaluation framework positions UK as international AI governance leader; evaluation methodology likely to influence procurement and liability standards globally.",
+  },
+  {
+    category: "Policy", title: "UAE National AI Strategy 2031 targets top-tier global AI hub status",
+    description: "The UAE's Office of AI under Minister of State for AI Omar Al Olama updated its national AI strategy targeting the UAE as a top global AI economy by 2031, with focus areas including AI-powered government services, private sector AI adoption, and international AI governance leadership.",
+    region: "Middle East", sector: "Artificial Intelligence", amountUsd: null, investmentType: null,
+    entities: ["UAE", "Office of AI", "TDRA"], sourceName: "UAE Office of AI — Official Strategy Document", sourceType: "Government",
+    sourceUrl: "https://ai.gov.ae", publicationDate: new Date("2023-06-01"),
+    updatedAt: new Date("2024-01-01"), significance: 4, tags: ["Sovereign AI", "UAE", "Strategy"],
+    strategicImplication: "UAE AI strategy creates a regulated, investment-friendly AI environment; Abu Dhabi and Dubai are emerging co-location hubs for global AI companies seeking Gulf market access.",
+  },
+  {
+    category: "Policy", title: "G7 Hiroshima AI Process establishes international AI governance code",
+    description: "G7 leaders endorsed the Hiroshima Process International Code of Conduct for AI developers, a voluntary framework for responsible advanced AI development covering safety testing, incident reporting, and content provenance. The code was developed under Japan's G7 presidency.",
+    region: "Global", sector: "Artificial Intelligence", amountUsd: null, investmentType: null,
+    entities: ["G7", "Japan", "EU", "US", "UK"], sourceName: "G7 Hiroshima Leaders' Communiqué", sourceType: "International Organisation",
+    sourceUrl: "https://www.g7hiroshima.go.jp", publicationDate: new Date("2023-11-01"),
+    updatedAt: new Date("2024-01-01"), significance: 4, tags: ["Governance", "International", "Safety"],
+    strategicImplication: "G7 code provides a preview of binding multilateral AI norms; companies with G7 market exposure should align governance practices proactively.",
+  },
+  {
+    category: "Policy", title: "UN Secretary-General convenes International AI Advisory Body",
+    description: "UN Secretary-General António Guterres established a 39-member International AI Advisory Body bringing together governments, civil society, and private sector to develop global AI governance recommendations, with a final report due at the UN Summit of the Future in 2024.",
+    region: "Global", sector: "Artificial Intelligence", amountUsd: null, investmentType: null,
+    entities: ["United Nations", "Secretary-General"], sourceName: "United Nations — Secretary-General's Announcement", sourceType: "International Organisation",
+    sourceUrl: "https://www.un.org/en/ai-advisory-body", publicationDate: new Date("2023-10-26"),
+    updatedAt: new Date("2024-09-01"), significance: 3, tags: ["Governance", "UN", "Multilateral"],
+    strategicImplication: "UN-level AI governance acceleration may produce binding resolutions affecting AI deployment in emerging markets; monitor for cross-border data sovereignty implications.",
+  },
+  // ── INFRASTRUCTURE ───────────────────────────────────────────────────────
+  {
+    category: "Infrastructure", title: "Microsoft plans $80 billion AI data centre investment in FY2025",
+    description: "Microsoft announced plans to invest $80 billion in AI-enabled data centre infrastructure in FY2025, with more than half the investment earmarked for the United States. The plan covers GPU cluster build-out, power infrastructure, and AI supercomputing capacity for Azure and OpenAI workloads.",
+    region: "North America", sector: "Infrastructure", amountUsd: 80.0, investmentType: "Government",
+    entities: ["Microsoft", "Azure", "OpenAI"], sourceName: "Microsoft Official Blog (Brad Smith)", sourceType: "Investor Relations",
+    sourceUrl: "https://blogs.microsoft.com", publicationDate: new Date("2025-01-13"),
+    updatedAt: new Date("2025-02-01"), significance: 5, tags: ["Data Centre", "Compute", "Power"],
+    strategicImplication: "Microsoft's $80B commitment validates hyperscale AI infrastructure as a 10-year capital cycle; creates investment opportunities in power, cooling, construction, and networking.",
+  },
+  {
+    category: "Infrastructure", title: "IEA: AI data centres to double global electricity demand by 2026",
+    description: "The International Energy Agency's Electricity 2024 report projects that global data centre electricity demand will double from 2022 to 2026, driven primarily by AI workloads. US data centres alone could consume more electricity than all of France by 2026 under high-case scenarios.",
+    region: "Global", sector: "Energy", amountUsd: null, investmentType: null,
+    entities: ["IEA", "International Energy Agency"], sourceName: "International Energy Agency — Electricity 2024", sourceType: "International Organisation",
+    sourceUrl: "https://www.iea.org/reports/electricity-2024", publicationDate: new Date("2024-01-24"),
+    updatedAt: new Date("2024-04-01"), significance: 5, tags: ["Energy", "Data Centre", "Power Demand"],
+    strategicImplication: "AI-driven power demand is a structural tailwind for energy infrastructure investors; renewable energy co-location, grid balancing, and nuclear power are priority themes.",
+  },
+  {
+    category: "Infrastructure", title: "US CHIPS and Science Act awards $52.7 billion for semiconductor manufacturing",
+    description: "The US Department of Commerce commenced disbursement of CHIPS Act funds with major awards to TSMC ($6.6B), Intel ($8.5B), Samsung ($6.4B), and Micron ($6.1B) for US-based semiconductor fabrication capacity. The programme aims to produce at least 20% of leading-edge chips in the US by 2030.",
+    region: "North America", sector: "Semiconductors", amountUsd: 52.7, investmentType: "Government",
+    entities: ["US Government", "TSMC", "Intel", "Samsung", "Micron"], sourceName: "US Department of Commerce — CHIPS Program Office", sourceType: "Government",
+    sourceUrl: "https://www.chips.gov", publicationDate: new Date("2024-03-01"),
+    updatedAt: new Date("2024-10-01"), significance: 5, tags: ["Semiconductors", "Supply Chain", "CHIPS Act"],
+    strategicImplication: "CHIPS Act reshapes global semiconductor geography; long-horizon investment in US fab real estate, tooling supply chains, and advanced packaging is supported by policy.",
+  },
+  {
+    category: "Infrastructure", title: "NVIDIA launches Blackwell GPU architecture — 2.5× inference throughput vs Hopper",
+    description: "NVIDIA unveiled the Blackwell GPU architecture at GTC 2024, delivering up to 2.5× inference throughput and 25× energy efficiency improvement over the H100 Hopper generation. The GB200 NVL72 rack system integrates 72 Blackwell GPUs in a liquid-cooled unit targeting hyperscale AI inference deployment.",
+    region: "North America", sector: "Semiconductors", amountUsd: null, investmentType: null,
+    entities: ["NVIDIA", "Blackwell", "GB200"], sourceName: "NVIDIA Investor Relations — GTC 2024", sourceType: "Investor Relations",
+    sourceUrl: "https://nvidianews.nvidia.com", publicationDate: new Date("2024-03-18"),
+    updatedAt: new Date("2024-06-01"), significance: 4, tags: ["GPU", "Compute", "NVIDIA", "Inference"],
+    strategicImplication: "Blackwell architecture sustains NVIDIA's compute moat; short-term supply constraints support premium GPU pricing; competitors AMD and Intel remain 1–2 generations behind.",
+  },
+  {
+    category: "Infrastructure", title: "EU AI Factories programme allocates €10 billion for supercomputer infrastructure",
+    description: "The European Commission and EuroHPC Joint Undertaking launched the AI Factories initiative allocating approximately €10 billion across member state AI supercomputing sites. Sites in Finland, Luxembourg, Germany, Spain, Italy, and others are designated to host AI-capable supercomputers accessible to European researchers and SMEs.",
+    region: "Europe", sector: "Infrastructure", amountUsd: 10.8, investmentType: "Government",
+    entities: ["European Commission", "EuroHPC", "EU"], sourceName: "European Commission — EuroHPC Joint Undertaking", sourceType: "Government",
+    sourceUrl: "https://eurohpc-ju.europa.eu", publicationDate: new Date("2024-01-01"),
+    updatedAt: new Date("2024-06-01"), significance: 4, tags: ["Compute", "Sovereignty", "Europe"],
+    strategicImplication: "EU AI Factories underpin European AI sovereignty agenda; creates procurement opportunity for GPU suppliers and cooling/power infrastructure providers within the EU.",
+  },
+  // ── RESEARCH ─────────────────────────────────────────────────────────────
+  {
+    category: "Research", title: "Stanford AI Index 2024: global AI investment reaches $91.9 billion",
+    description: "The Stanford Human-Centered AI (HAI) AI Index 2024 report documented global AI private investment of $91.9 billion in 2023, a 20% year-on-year decline from 2022 peaks but remaining above pre-2020 levels. US investment of $67.2 billion comprised 73% of global totals. China and the UK were second and third respectively.",
+    region: "Global", sector: "Artificial Intelligence", amountUsd: 91.9, investmentType: null,
+    entities: ["Stanford HAI"], sourceName: "Stanford HAI — AI Index Report 2024", sourceType: "Academic Research",
+    sourceUrl: "https://aiindex.stanford.edu", publicationDate: new Date("2024-04-15"),
+    updatedAt: new Date("2024-04-15"), significance: 5, tags: ["Global Investment", "Data", "Benchmark"],
+    strategicImplication: "US retains commanding lead in AI private investment; allocators should benchmark portfolio AI exposure against country-level investment flows as a leading indicator.",
+  },
+  {
+    category: "Research", title: "OECD: 27% of jobs face high exposure to AI automation risk",
+    description: "The OECD Employment Outlook 2023 estimated that 27% of jobs in OECD economies are in occupations with high exposure to AI automation. Knowledge-intensive service roles face higher replacement risk than previously modelled; however, job transformation rather than elimination is the dominant near-term scenario.",
+    region: "Global", sector: "Artificial Intelligence", amountUsd: null, investmentType: null,
+    entities: ["OECD"], sourceName: "OECD Employment Outlook 2023", sourceType: "International Organisation",
+    sourceUrl: "https://www.oecd.org/en/publications/oecd-employment-outlook-2023_08785bba-en.html", publicationDate: new Date("2023-07-11"),
+    updatedAt: new Date("2024-01-01"), significance: 4, tags: ["Labour", "Automation", "Policy Risk"],
+    strategicImplication: "AI-driven labour displacement creates political risk and regulatory pressure in advanced economies; portfolio companies with high-automation exposure should factor policy risk into scenario planning.",
+  },
+  {
+    category: "Research", title: "WIPO: China files most AI patents globally — 188,000+ AI filings in 2022",
+    description: "WIPO's 2023 Technology Trends report recorded over 188,000 AI-related patent filings in 2022, with China accounting for the largest national share at 38.8%, followed by the United States at 17.5%. Machine learning and computer vision dominated filing categories. AI patent growth outpaces all other technology sectors.",
+    region: "Global", sector: "Artificial Intelligence", amountUsd: null, investmentType: null,
+    entities: ["WIPO", "China", "USPTO"], sourceName: "WIPO Technology Trends: AI Report 2023", sourceType: "International Organisation",
+    sourceUrl: "https://www.wipo.int/tech_trends/en/artificial_intelligence", publicationDate: new Date("2023-01-01"),
+    updatedAt: new Date("2024-01-01"), significance: 3, tags: ["IP", "China", "Innovation"],
+    strategicImplication: "China's IP leadership in AI is a lagging indicator of applied AI capability; relevant to long-run competitive positioning analysis across tech and manufacturing sectors.",
+  },
+  {
+    category: "Research", title: "IMF: AI could affect 40% of jobs globally and widen inequality between nations",
+    description: "IMF research published in January 2024 estimated that AI could affect 40% of jobs globally, with advanced economies (60% exposure) far more vulnerable than low-income countries (26%). The IMF warned that without proactive policy, AI could exacerbate income inequality within and between nations.",
+    region: "Global", sector: "Artificial Intelligence", amountUsd: null, investmentType: null,
+    entities: ["IMF", "International Monetary Fund"], sourceName: "IMF Staff Discussion Note: Gen AI — Jan 2024", sourceType: "International Organisation",
+    sourceUrl: "https://www.imf.org/en/Publications/Staff-Discussion-Notes", publicationDate: new Date("2024-01-14"),
+    updatedAt: new Date("2024-04-01"), significance: 5, tags: ["Macro", "Labour", "Inequality"],
+    strategicImplication: "IMF framing positions AI as a macro-level inequality driver; sovereign wealth funds with development mandates should factor AI policy alignment into LP relations and ESG frameworks.",
+  },
+];
+
+async function seedAiTrends() {
+  const existing = await storage.getAiTrends();
+  if (existing.length >= AI_TREND_SEEDS.length - 3) {
+    console.log(`[ai-trends] Already have ${existing.length} records — skipping seed`);
+    return;
+  }
+  await storage.deleteAllAiTrends();
+  for (const t of AI_TREND_SEEDS) {
+    await storage.createAiTrend(t as any);
+  }
+  console.log(`[ai-trends] Seeded ${AI_TREND_SEEDS.length} AI trend records`);
 }
