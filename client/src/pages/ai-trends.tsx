@@ -215,46 +215,46 @@ export default function AiTrends() {
 
   const { data: allTrends = [], isLoading } = useAiTrends();
 
-  const filtered = useMemo(() => {
-    return allTrends.filter(t => {
-      if (regionFilter !== "All" && t.region !== regionFilter) return false;
-      if (categoryFilter !== "All" && t.category !== categoryFilter) return false;
-      if (sectorFilter !== "All" && t.sector !== sectorFilter) return false;
-      return true;
-    }).sort((a, b) => {
-      let va: number, vb: number;
-      if (sortField === "publicationDate") {
-        va = new Date(a.publicationDate).getTime();
-        vb = new Date(b.publicationDate).getTime();
-      } else if (sortField === "amountUsd") {
-        va = a.amountUsd ?? 0;
-        vb = b.amountUsd ?? 0;
-      } else {
-        va = a.significance; vb = b.significance;
-      }
-      return sortDesc ? vb - va : va - vb;
-    });
-  }, [allTrends, regionFilter, categoryFilter, sectorFilter, sortField, sortDesc]);
+  const filteredBase = useMemo(() => allTrends.filter(t => {
+    if (regionFilter !== "All" && t.region !== regionFilter) return false;
+    if (categoryFilter !== "All" && t.category !== categoryFilter) return false;
+    if (sectorFilter !== "All" && t.sector !== sectorFilter) return false;
+    return true;
+  }), [allTrends, regionFilter, categoryFilter, sectorFilter]);
+
+  const filtered = useMemo(() => [...filteredBase].sort((a, b) => {
+    let va: number, vb: number;
+    if (sortField === "publicationDate") {
+      va = new Date(a.publicationDate).getTime();
+      vb = new Date(b.publicationDate).getTime();
+    } else if (sortField === "amountUsd") {
+      va = a.amountUsd ?? 0;
+      vb = b.amountUsd ?? 0;
+    } else {
+      va = a.significance; vb = b.significance;
+    }
+    return sortDesc ? vb - va : va - vb;
+  }), [filteredBase, sortField, sortDesc]);
 
   const boardBrief = useMemo(() =>
-    allTrends.filter(t => t.significance === 5).slice(0, 5), [allTrends]);
+    filteredBase.filter(t => t.significance === 5).slice(0, 5), [filteredBase]);
 
   const regionalData = useMemo(() => {
     const map: Record<string, number> = {};
-    allTrends.filter(t => t.amountUsd && t.category !== "Research").forEach(t => {
+    filteredBase.filter(t => t.amountUsd && t.category !== "Research").forEach(t => {
       const r = t.region === "Global" ? "Global" : t.region;
       map[r] = (map[r] ?? 0) + (t.amountUsd ?? 0);
     });
     return Object.entries(map)
       .map(([region, total]) => ({ region: region.replace(" America", " Am.").replace(" Pacific", " Pac."), total: parseFloat(total.toFixed(1)) }))
       .sort((a, b) => b.total - a.total);
-  }, [allTrends]);
+  }, [filteredBase]);
 
   const categoryData = useMemo(() => {
     const map: Record<string, number> = {};
-    allTrends.forEach(t => { map[t.category] = (map[t.category] ?? 0) + 1; });
+    filteredBase.forEach(t => { map[t.category] = (map[t.category] ?? 0) + 1; });
     return Object.entries(map).map(([cat, count]) => ({ cat, count })).sort((a, b) => b.count - a.count);
-  }, [allTrends]);
+  }, [filteredBase]);
 
   const toggleSort = (field: typeof sortField) => {
     if (sortField === field) setSortDesc(v => !v);
@@ -286,14 +286,14 @@ export default function AiTrends() {
           <div className="flex flex-wrap gap-2 items-center">
             <Filter className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
             {[
-              { label: "Region", options: REGIONS, value: regionFilter, set: setRegionFilter },
-              { label: "Category", options: CATEGORIES, value: categoryFilter, set: setCategoryFilter },
-              { label: "Sector", options: SECTORS, value: sectorFilter, set: setSectorFilter },
-            ].map(({ label, options, value, set }) => (
+              { label: "Region", allLabel: "All Regions", options: REGIONS, value: regionFilter, set: setRegionFilter },
+              { label: "Category", allLabel: "All Categories", options: CATEGORIES, value: categoryFilter, set: setCategoryFilter },
+              { label: "Sector", allLabel: "All Sectors", options: SECTORS, value: sectorFilter, set: setSectorFilter },
+            ].map(({ label, allLabel, options, value, set }) => (
               <select key={label} value={value} onChange={e => set(e.target.value)}
                 data-testid={`filter-${label.toLowerCase()}`}
                 className="text-[10px] font-mono bg-secondary border border-border/50 rounded px-2 py-1 text-foreground/80 focus:outline-none focus:border-primary/50">
-                {options.map(o => <option key={o} value={o}>{o === "All" ? `All ${label}s` : o}</option>)}
+                {options.map(o => <option key={o} value={o}>{o === "All" ? allLabel : o}</option>)}
               </select>
             ))}
             {(regionFilter !== "All" || categoryFilter !== "All" || sectorFilter !== "All") && (
@@ -459,7 +459,7 @@ export default function AiTrends() {
                 </div>
                 <div className="glass-panel rounded-xl p-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {allTrends.filter(t => t.category === "Policy").map(t => (
+                    {filteredBase.filter(t => t.category === "Policy").map(t => (
                       <div key={t.id} className="flex flex-col gap-1 p-3 rounded-lg bg-secondary/30 border border-border/30"
                         data-testid={`policy-card-${t.id}`}>
                         <div className="flex items-start justify-between gap-2">
@@ -480,7 +480,7 @@ export default function AiTrends() {
                       </div>
                     ))}
                   </div>
-                  {allTrends.filter(t => t.category === "Policy").length === 0 && (
+                  {filteredBase.filter(t => t.category === "Policy").length === 0 && (
                     <div className="text-center text-xs font-mono text-muted-foreground/40 py-8">
                       NO POLICY RECORDS — ADJUST FILTERS
                     </div>
@@ -495,7 +495,7 @@ export default function AiTrends() {
                   <span className="text-[10px] font-mono text-muted-foreground/50 tracking-widest">INFRASTRUCTURE SIGNALS</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {allTrends.filter(t => t.category === "Infrastructure").map(t => {
+                  {filteredBase.filter(t => t.category === "Infrastructure").map(t => {
                     return (
                       <div key={t.id} className="glass-panel rounded-xl p-4" data-testid={`infra-card-${t.id}`}>
                         <div className="flex items-start justify-between gap-2 mb-2">
@@ -518,7 +518,7 @@ export default function AiTrends() {
                       </div>
                     );
                   })}
-                  {allTrends.filter(t => t.category === "Infrastructure").length === 0 && (
+                  {filteredBase.filter(t => t.category === "Infrastructure").length === 0 && (
                     <div className="col-span-3 text-center text-xs font-mono text-muted-foreground/40 py-8 glass-panel rounded-xl">
                       NO INFRASTRUCTURE RECORDS — ADJUST FILTERS
                     </div>
