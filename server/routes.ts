@@ -1057,11 +1057,27 @@ const AI_TREND_SEEDS = [
   },
 ];
 
+const BROKEN_URL_FRAGMENTS = [
+  "ft.com/content/mgx-blackrock-aligned-data-centers",
+  "techcrunch.com/2026/02/12/anthropic-raises-30-billion-series-g",
+  "aramco.com/en/news-media/news/2025/aramco-humain-agreement",
+  "commerce.gov/news/press-releases/2024/04/commerce-department-announces",
+  "globalswf.com/reports/2025-annual-report",
+  "news.microsoft.com/2024/04/15/microsoft-and-g42-announce-strategic-partnership",
+  "whitehouse.gov/presidential-actions/2025/12/ensuring-a-national-policy-framework",
+];
+
 async function seedAiTrends() {
   const existing = await storage.getAiTrends();
-  if (existing.length >= AI_TREND_SEEDS.length - 3) {
+  const hasBrokenUrls = existing.some(t =>
+    t.sourceUrl && BROKEN_URL_FRAGMENTS.some(frag => t.sourceUrl!.includes(frag))
+  );
+  if (!hasBrokenUrls && existing.length >= AI_TREND_SEEDS.length - 3) {
     console.log(`[ai-trends] Already have ${existing.length} records — skipping seed`);
     return;
+  }
+  if (hasBrokenUrls) {
+    console.log(`[ai-trends] Detected stale/broken source URLs — re-seeding with corrected data`);
   }
   await storage.deleteAllAiTrends();
   for (const t of AI_TREND_SEEDS) {
