@@ -20,11 +20,14 @@ const SECTORS = ["All", "Artificial Intelligence", "Semiconductors", "Infrastruc
 const SOURCE_TYPE_COLORS: Record<string, string> = {
   "Investor Relations": "bg-blue-500/20 text-blue-300 border-blue-500/30",
   "Government": "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+  "Government / Official": "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
   "Academic Research": "bg-purple-500/20 text-purple-300 border-purple-500/30",
   "International Organisation": "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
   "Regulatory": "bg-amber-500/20 text-amber-300 border-amber-500/30",
   "News Wire": "bg-rose-500/20 text-rose-300 border-rose-500/30",
   "Market Research": "bg-orange-500/20 text-orange-300 border-orange-500/30",
+  "Institutional Media": "bg-rose-500/20 text-rose-300 border-rose-500/30",
+  "Partnership": "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
 };
 
 const CATEGORY_ICONS: Record<string, typeof TrendingUp> = {
