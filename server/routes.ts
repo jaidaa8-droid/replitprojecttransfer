@@ -1068,6 +1068,28 @@ const BROKEN_URL_FRAGMENTS = [
 ];
 
 async function seedAiTrends() {
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS ai_trends (
+      id serial PRIMARY KEY,
+      category text NOT NULL,
+      title text NOT NULL,
+      description text NOT NULL,
+      region text NOT NULL,
+      sector text NOT NULL,
+      amount_usd real,
+      investment_type text,
+      entities jsonb NOT NULL DEFAULT '[]',
+      source_name text NOT NULL,
+      source_type text NOT NULL,
+      source_url text,
+      publication_date timestamp NOT NULL,
+      updated_at timestamp NOT NULL,
+      significance integer NOT NULL,
+      tags jsonb NOT NULL DEFAULT '[]',
+      strategic_implication text
+    )
+  `);
+
   const existing = await storage.getAiTrends();
   const hasBrokenUrls = existing.some(t =>
     t.sourceUrl && BROKEN_URL_FRAGMENTS.some(frag => t.sourceUrl!.includes(frag))
