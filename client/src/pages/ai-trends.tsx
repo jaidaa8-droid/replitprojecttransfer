@@ -342,7 +342,7 @@ export default function AiTrends() {
                 <section>
                   <div className="flex items-center gap-2 mb-3">
                     <Award className="w-4 h-4" style={{ color: BRAND }} />
-                    <span className="text-[10px] font-mono text-muted-foreground/50 tracking-widest">BOARD / IC BRIEF — TOP {boardBrief.length} DEVELOPMENTS</span>
+                    <span className="text-[10px] font-mono text-muted-foreground/50 tracking-widest">Executive Brief — Key AI Trends</span>
                   </div>
                   <div className="space-y-3">
                     {boardBrief.map((t, i) => <BriefCard key={t.id} rank={i + 1} trend={t} />)}
