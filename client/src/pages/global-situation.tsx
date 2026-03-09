@@ -204,6 +204,7 @@ export default function GlobalSituation() {
                 <EventDetail
                   event={selectedEvent}
                   onClose={() => setSelectedEventId(null)}
+                  onCloseAll={() => setSelectedEventId(null)}
                 />
               </motion.div>
             )}
@@ -384,75 +385,86 @@ function AnalysisFullScreen({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.97 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.97 }}
-      transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-[9999] bg-background/98 backdrop-blur-xl flex flex-col overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18 }}
+      className="fixed inset-0 z-[9999] bg-background flex flex-col"
     >
       {/* Header */}
-      <div className="shrink-0 flex items-center gap-3 px-6 py-4 border-b border-border/60 bg-card/80">
-        <BrainCircuit className="w-5 h-5 text-primary" />
+      <div className="shrink-0 flex items-center gap-3 px-5 py-3 border-b border-border/60 bg-card/90 backdrop-blur">
+        <BrainCircuit className="w-4 h-4 text-primary shrink-0" />
         <div className="flex-1 min-w-0">
-          <div className="text-[10px] font-mono text-muted-foreground tracking-widest mb-0.5">AI SYNTHESIS — NODE {event.id.toString().padStart(4, "0")}</div>
-          <h2 className="text-sm font-bold leading-snug truncate">{event.title}</h2>
+          <div className="text-[10px] font-mono text-muted-foreground tracking-widest mb-0.5">
+            AI SYNTHESIS — NODE {event.id.toString().padStart(4, "0")}
+          </div>
+          <h2 className="text-sm font-bold leading-tight truncate">{event.title}</h2>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <SeverityBadge level={event.severity} glow={event.severity >= 4} />
-          <Button
-            variant="ghost"
-            size="icon"
+          <button
             onClick={onClose}
             data-testid="button-close-analysis-fullscreen"
-            className="w-8 h-8 rounded-full border border-border/60 hover:bg-secondary/60"
+            className="w-8 h-8 rounded-full border border-border/60 flex items-center justify-center hover:bg-secondary/60 transition-colors"
           >
             <X className="w-4 h-4" />
-          </Button>
+          </button>
         </div>
       </div>
 
-      {/* Body — 4-column grid on large screens, scrollable list on mobile */}
-      <ScrollArea className="flex-1">
-        <div className="p-6 max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+      {/* Tabbed body */}
+      <div className="flex-1 overflow-hidden">
+        <Tabs defaultValue="analogues" className="h-full flex flex-col">
+          <div className="shrink-0 px-5 pt-4 pb-0 border-b border-border/40">
+            <TabsList className="bg-secondary/40 h-auto p-0.5 gap-0.5">
+              <TabsTrigger value="analogues" className="text-[11px] font-mono py-1.5 px-4 data-[state=active]:bg-card">
+                HISTORICAL
+              </TabsTrigger>
+              <TabsTrigger value="causal" className="text-[11px] font-mono py-1.5 px-4 data-[state=active]:bg-card">
+                CAUSAL CHAIN
+              </TabsTrigger>
+              <TabsTrigger value="impact" className="text-[11px] font-mono py-1.5 px-4 data-[state=active]:bg-card">
+                IMPACT
+              </TabsTrigger>
+              <TabsTrigger value="action" className="text-[11px] font-mono py-1.5 px-4 data-[state=active]:bg-card">
+                ACTION
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-            {/* HISTORICAL ANALOGUES */}
-            <div className="flex flex-col gap-3">
-              <h3 className="text-[10px] font-mono font-bold text-primary flex items-center gap-1.5 tracking-widest">
-                <Zap className="w-3 h-3" /> HISTORICAL ANALOGUES
-              </h3>
-              {data.historical_analogues.map((a, i) => (
-                <div key={i} className="bg-secondary/20 p-3 rounded-lg border border-border/50">
-                  <div className="flex justify-between items-start mb-1 gap-2">
-                    <div className="font-semibold text-xs leading-snug">{a.title} ({a.year})</div>
-                    <div className="text-[10px] font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded shrink-0">
-                      {(a.similarity_score * 100).toFixed(0)}%
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">{a.rationale}</p>
-                </div>
-              ))}
-            </div>
+          <ScrollArea className="flex-1">
+            <div className="p-5 max-w-4xl mx-auto">
 
-            {/* CAUSAL CHAIN */}
-            <div className="flex flex-col gap-3">
-              <h3 className="text-[10px] font-mono font-bold text-yellow-400 flex items-center gap-1.5 tracking-widest">
-                <ArrowRight className="w-3 h-3" /> CAUSAL CHAIN
-              </h3>
-              <div className="space-y-0">
-                {data.causal_chain.map((c, i) => (
-                  <div key={i} className="relative pl-5 pb-4 last:pb-0">
-                    <div className="absolute left-[9px] top-2 bottom-0 w-px bg-border" />
-                    <div className="absolute left-[6px] top-2 w-2 h-2 rounded-full bg-secondary border-2 border-yellow-400" />
-                    <div className="bg-secondary/20 p-2.5 rounded-lg border border-border/50">
-                      <div className="flex justify-between items-center mb-0.5 gap-2">
-                        <span className="text-xs font-semibold leading-snug">{c.claim}</span>
-                        <span className="text-[10px] font-mono text-yellow-400 shrink-0">{c.probability}</span>
+              <TabsContent value="analogues" className="mt-0 space-y-3">
+                <p className="text-[11px] text-muted-foreground font-mono tracking-widest mb-4">HISTORICAL ANALOGUES</p>
+                {data.historical_analogues.map((a, i) => (
+                  <div key={i} className="bg-secondary/20 p-4 rounded-lg border border-border/50">
+                    <div className="flex justify-between items-start mb-2 gap-3">
+                      <div className="font-semibold text-sm leading-snug">{a.title} ({a.year})</div>
+                      <div className="text-xs font-mono text-primary bg-primary/10 px-2 py-1 rounded shrink-0">
+                        {(a.similarity_score * 100).toFixed(0)}% match
                       </div>
-                      <div className="text-[10px] text-muted-foreground font-mono mb-1.5">↳ {c.time_horizon}</div>
-                      <div className="flex flex-wrap gap-1">
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{a.rationale}</p>
+                  </div>
+                ))}
+              </TabsContent>
+
+              <TabsContent value="causal" className="mt-0 space-y-0">
+                <p className="text-[11px] text-muted-foreground font-mono tracking-widest mb-4">CAUSAL CHAIN</p>
+                {data.causal_chain.map((c, i) => (
+                  <div key={i} className="relative pl-6 pb-5 last:pb-0">
+                    <div className="absolute left-[11px] top-2 bottom-0 w-px bg-border" />
+                    <div className="absolute left-[8px] top-2 w-2.5 h-2.5 rounded-full bg-secondary border-2 border-primary" />
+                    <div className="bg-secondary/20 p-3 rounded-lg border border-border/50">
+                      <div className="flex justify-between items-start mb-1 gap-3">
+                        <span className="text-sm font-semibold leading-snug">{c.claim}</span>
+                        <span className="text-xs font-mono text-yellow-400 shrink-0">{c.probability}</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground font-mono mb-2">↳ {c.time_horizon}</div>
+                      <div className="flex flex-wrap gap-1.5">
                         {c.evidence_signals.map((sig, j) => (
-                          <span key={j} className="text-[9px] bg-background px-1.5 py-0.5 rounded border border-border/70 text-muted-foreground">
+                          <span key={j} className="text-[10px] bg-background px-2 py-0.5 rounded border border-border/70 text-muted-foreground">
                             {sig}
                           </span>
                         ))}
@@ -460,65 +472,61 @@ function AnalysisFullScreen({
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
+              </TabsContent>
 
-            {/* PORTFOLIO IMPACT */}
-            <div className="flex flex-col gap-3">
-              <h3 className="text-[10px] font-mono font-bold text-destructive flex items-center gap-1.5 tracking-widest">
-                <Crosshair className="w-3 h-3" /> PORTFOLIO IMPACT
-              </h3>
-              {data.portfolio_impact.map((p, i) => (
-                <div key={i} className="flex gap-2.5 bg-secondary/20 p-3 rounded-lg border border-border/50">
-                  <Crosshair className="w-3.5 h-3.5 text-destructive mt-0.5 shrink-0" />
-                  <div>
-                    <div className="text-xs font-semibold">{p.asset_or_business}</div>
-                    <div className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{p.pathway}</div>
-                    <div className="flex gap-1.5 mt-1.5 flex-wrap">
-                      <span className="text-[10px] font-mono bg-destructive/10 text-destructive px-1.5 py-0.5 rounded border border-destructive/20">{p.impact_type}</span>
-                      <span className="text-[10px] font-mono bg-background px-1.5 py-0.5 rounded border border-border">{p.magnitude}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* ACTION FRAMEWORK */}
-            <div className="flex flex-col gap-3">
-              <h3 className="text-[10px] font-mono font-bold text-foreground flex items-center gap-1.5 tracking-widest">
-                <Activity className="w-3 h-3" /> ACTION FRAMEWORK
-              </h3>
-              {[
-                { label: "NO REGRETS", key: "no_regrets" as const, color: "text-primary", borderColor: "border-primary/20" },
-                { label: "STUDY NOW", key: "study_now" as const, color: "text-yellow-400", borderColor: "border-yellow-400/20" },
-                { label: "MONITOR", key: "monitor" as const, color: "text-muted-foreground", borderColor: "border-border" },
-              ].map(({ label, key, color, borderColor }) => (
-                <div key={key}>
-                  <h4 className={`text-[10px] font-mono font-bold ${color} flex items-center gap-1 mb-1.5`}>
-                    <ArrowRight className="w-2.5 h-2.5" /> {label}
-                  </h4>
-                  {data.action_framework[key].map((a, i) => (
-                    <div key={i} className={`bg-secondary/20 p-2.5 rounded border ${borderColor} text-xs mb-1.5`}>
-                      {a.action}
-                      <div className="mt-1 text-[10px] font-mono text-muted-foreground">
-                        {a.owner_role} · {a.deadline}
-                        {"trigger" in a && a.trigger ? ` · IF: ${a.trigger}` : ""}
+              <TabsContent value="impact" className="mt-0 space-y-3">
+                <p className="text-[11px] text-muted-foreground font-mono tracking-widest mb-4">PORTFOLIO IMPACT</p>
+                {data.portfolio_impact.map((p, i) => (
+                  <div key={i} className="flex gap-3 bg-secondary/20 p-4 rounded-lg border border-border/50">
+                    <Crosshair className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold mb-1">{p.asset_or_business}</div>
+                      <div className="text-xs text-muted-foreground leading-relaxed mb-2">{p.pathway}</div>
+                      <div className="flex gap-2 flex-wrap">
+                        <span className="text-[11px] font-mono bg-destructive/10 text-destructive px-2 py-0.5 rounded border border-destructive/20">{p.impact_type}</span>
+                        <span className="text-[11px] font-mono bg-background px-2 py-0.5 rounded border border-border">{p.magnitude}</span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ))}
-            </div>
+                  </div>
+                ))}
+              </TabsContent>
 
-          </div>
-        </div>
-      </ScrollArea>
+              <TabsContent value="action" className="mt-0 space-y-4">
+                <p className="text-[11px] text-muted-foreground font-mono tracking-widest mb-4">ACTION FRAMEWORK</p>
+                {[
+                  { label: "NO REGRETS", key: "no_regrets" as const, color: "text-primary", borderColor: "border-primary/30", bg: "bg-primary/5" },
+                  { label: "STUDY NOW", key: "study_now" as const, color: "text-yellow-400", borderColor: "border-yellow-400/30", bg: "bg-yellow-400/5" },
+                  { label: "MONITOR", key: "monitor" as const, color: "text-muted-foreground", borderColor: "border-border", bg: "bg-secondary/20" },
+                ].map(({ label, key, color, borderColor, bg }) => (
+                  <div key={key}>
+                    <h4 className={`text-[11px] font-mono font-bold ${color} flex items-center gap-1.5 mb-2`}>
+                      <ArrowRight className="w-3 h-3" /> {label}
+                    </h4>
+                    <div className="space-y-2">
+                      {data.action_framework[key].map((a, i) => (
+                        <div key={i} className={`${bg} p-3 rounded-lg border ${borderColor} text-xs`}>
+                          <div className="font-medium leading-relaxed mb-1">{a.action}</div>
+                          <div className="text-[11px] font-mono text-muted-foreground">
+                            {a.owner_role} · {a.deadline}
+                            {"trigger" in a && a.trigger ? ` · IF: ${a.trigger}` : ""}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </TabsContent>
+
+            </div>
+          </ScrollArea>
+        </Tabs>
+      </div>
     </motion.div>
   );
 }
 
 /* ─── Event Detail Panel ──────────────────────────────────────────── */
-function EventDetail({ event, onClose }: { event: Event; onClose: () => void }) {
+function EventDetail({ event, onClose, onCloseAll }: { event: Event; onClose: () => void; onCloseAll: () => void }) {
   const analyzeMutation = useAnalyzeEvent();
   const [showFullAnalysis, setShowFullAnalysis] = useState(false);
 
@@ -529,7 +537,7 @@ function EventDetail({ event, onClose }: { event: Event; onClose: () => void }) 
           <AnalysisFullScreen
             event={event}
             data={analyzeMutation.data}
-            onClose={() => setShowFullAnalysis(false)}
+            onClose={() => { setShowFullAnalysis(false); onCloseAll(); }}
           />
         )}
       </AnimatePresence>
