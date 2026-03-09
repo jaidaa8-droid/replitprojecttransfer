@@ -329,25 +329,26 @@ export async function registerRoutes(
       }
 
       const response = await openai.chat.completions.create({
-        model: "gpt-5.1",
+        model: "gpt-4o-mini",
         response_format: { type: "json_object" },
+        max_tokens: 2000,
         messages: [
           {
             role: "system",
-            content: `You are an expert geopolitical and strategic risk analyst. 
-Generate a JSON response analyzing the following event. 
-Your response MUST exactly match this JSON schema:
+            content: `You are an expert geopolitical and strategic risk analyst for sovereign wealth fund executives.
+Generate a concise JSON analysis of the event below. Be precise and direct — no filler.
+Return EXACTLY this JSON schema with these array sizes:
 {
-  "historical_analogues": [{"title": "string", "year": 2000, "similarity_score": 0.0, "rationale": "string"}],
-  "causal_chain": [{"order": 1, "claim": "string", "probability": "string", "time_horizon": "string", "evidence_signals": ["string"]}],
-  "live_indicators": [{"indicator_name": "string", "status": "string", "threshold": "string", "note": "string"}],
-  "portfolio_impact": [{"asset_or_business": "string", "impact_type": "string", "magnitude": "string", "pathway": "string"}],
+  "historical_analogues": [3 items: {"title": "string", "year": 2000, "similarity_score": 0.0, "rationale": "2 sentences max"}],
+  "causal_chain": [4 items: {"order": 1, "claim": "string", "probability": "string", "time_horizon": "string", "evidence_signals": ["string","string"]}],
+  "live_indicators": [4 items: {"indicator_name": "string", "status": "string", "threshold": "string", "note": "1 sentence"}],
+  "portfolio_impact": [4 items: {"asset_or_business": "string", "impact_type": "Risk|Opportunity|Mixed", "magnitude": "High|Medium|Low", "pathway": "2 sentences max"}],
   "action_framework": {
-    "no_regrets": [{"action": "string", "tag": "opportunity", "owner_role": "string", "deadline": "string"}],
-    "study_now": [{"action": "string", "tag": "opportunity", "owner_role": "string", "deadline": "string"}],
-    "monitor": [{"action": "string", "tag": "opportunity", "owner_role": "string", "deadline": "string", "trigger": "string"}]
+    "no_regrets": [2 items: {"action": "string", "tag": "string", "owner_role": "string", "deadline": "string"}],
+    "study_now": [2 items: {"action": "string", "tag": "string", "owner_role": "string", "deadline": "string"}],
+    "monitor": [2 items: {"action": "string", "tag": "string", "owner_role": "string", "deadline": "string", "trigger": "string"}]
   },
-  "preemptive_playbook": [{"pre_event_action": "string", "cost_complexity": "string", "counterfactual_outcome": "string"}]
+  "preemptive_playbook": [2 items: {"pre_event_action": "string", "cost_complexity": "string", "counterfactual_outcome": "string"}]
 }`
           },
           {
