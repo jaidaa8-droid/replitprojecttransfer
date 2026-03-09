@@ -536,25 +536,25 @@ function AnalysisFullScreen({
           </ScrollArea>
         ) : (
         <Tabs defaultValue="analogues" className="h-full flex flex-col">
-          <div className="shrink-0 px-5 pt-4 pb-0 border-b border-border/40">
-            <TabsList className="bg-secondary/40 h-auto p-0.5 gap-0.5">
-              <TabsTrigger value="analogues" className="text-[11px] font-mono py-1.5 px-4 data-[state=active]:bg-card">
+          <div className="shrink-0 px-3 sm:px-5 pt-4 pb-0 border-b border-border/40 overflow-x-auto">
+            <TabsList className="bg-secondary/40 h-auto p-0.5 gap-0.5 w-full sm:w-auto flex">
+              <TabsTrigger value="analogues" className="text-[10px] sm:text-[11px] font-mono py-1.5 px-2 sm:px-4 flex-1 sm:flex-none data-[state=active]:bg-card">
                 HISTORICAL
               </TabsTrigger>
-              <TabsTrigger value="causal" className="text-[11px] font-mono py-1.5 px-4 data-[state=active]:bg-card">
-                CAUSAL CHAIN
+              <TabsTrigger value="causal" className="text-[10px] sm:text-[11px] font-mono py-1.5 px-2 sm:px-4 flex-1 sm:flex-none data-[state=active]:bg-card">
+                CAUSAL
               </TabsTrigger>
-              <TabsTrigger value="impact" className="text-[11px] font-mono py-1.5 px-4 data-[state=active]:bg-card">
+              <TabsTrigger value="impact" className="text-[10px] sm:text-[11px] font-mono py-1.5 px-2 sm:px-4 flex-1 sm:flex-none data-[state=active]:bg-card">
                 IMPACT
               </TabsTrigger>
-              <TabsTrigger value="action" className="text-[11px] font-mono py-1.5 px-4 data-[state=active]:bg-card">
+              <TabsTrigger value="action" className="text-[10px] sm:text-[11px] font-mono py-1.5 px-2 sm:px-4 flex-1 sm:flex-none data-[state=active]:bg-card">
                 ACTION
               </TabsTrigger>
             </TabsList>
           </div>
 
           <ScrollArea className="flex-1">
-            <div className="p-5 max-w-4xl mx-auto">
+            <div className="p-3 sm:p-5 max-w-4xl mx-auto">
 
               <TabsContent value="analogues" className="mt-0 space-y-3">
                 <p className="text-[11px] text-muted-foreground font-mono tracking-widest mb-4">HISTORICAL ANALOGUES</p>
@@ -578,14 +578,19 @@ function AnalysisFullScreen({
                     <div className="absolute left-[11px] top-2 bottom-0 w-px bg-border" />
                     <div className="absolute left-[8px] top-2 w-2.5 h-2.5 rounded-full bg-secondary border-2 border-primary" />
                     <div className="bg-secondary/20 p-3 rounded-lg border border-border/50">
-                      <div className="flex justify-between items-start mb-1 gap-3">
-                        <span className="text-sm font-semibold leading-snug">{c.claim}</span>
-                        <span className="text-xs font-mono text-yellow-400 shrink-0">{c.probability}</span>
+                      {/* Header: stacks on mobile, side-by-side on sm+ */}
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1.5 sm:gap-3 mb-2">
+                        <span className="text-xs sm:text-sm font-semibold leading-snug">{c.claim}</span>
+                        <span className="inline-flex items-center self-start sm:self-auto shrink-0 text-[10px] sm:text-xs font-mono font-bold text-yellow-400 bg-yellow-400/10 border border-yellow-400/30 px-2 py-0.5 rounded-full whitespace-nowrap">
+                          {c.probability}
+                        </span>
                       </div>
-                      <div className="text-xs text-muted-foreground font-mono mb-2">↳ {c.time_horizon}</div>
+                      <div className="text-[11px] sm:text-xs text-muted-foreground font-mono mb-2 leading-relaxed">
+                        ↳ {c.time_horizon}
+                      </div>
                       <div className="flex flex-wrap gap-1.5">
                         {c.evidence_signals.map((sig, j) => (
-                          <span key={j} className="text-[10px] bg-background px-2 py-0.5 rounded border border-border/70 text-muted-foreground">
+                          <span key={j} className="text-[10px] bg-background px-2 py-0.5 rounded border border-border/70 text-muted-foreground leading-snug">
                             {sig}
                           </span>
                         ))}
