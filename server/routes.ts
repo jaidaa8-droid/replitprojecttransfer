@@ -1046,21 +1046,12 @@ const AI_TREND_SEEDS = [
     updatedAt: new Date("2026-03-05"), significance: 3, tags: ["Media", "Creative AI", "Netflix", "Acquisition"],
     strategicImplication: "Netflix's AI studio acquisition accelerates the convergence of AI and creative production — media-sector allocators should model AI-driven production cost compression as a structural margin tailwind for platform studios, while monitoring talent and guild regulatory risk as the primary offset.",
   },
-  {
-    category: "Policy", title: "China tells firms to avoid H200 chips — customs blocks NVIDIA imports as domestic AI race intensifies",
-    description: "Chinese customs authorities instructed import agents to block NVIDIA H200 AI chips at the border in January 2026, while Chinese technology companies were separately advised to pause H200 purchases unless strictly necessary — a de facto import moratorium coordinated with Beijing's domestic semiconductor promotion agenda. The move came on the same day the Trump administration approved limited H200 exports to China, rendering the US policy move commercially void. The episode reflects Beijing's deliberate strategy of reducing dependency on US AI hardware by accelerating domestic production of Huawei Ascend 910C, Cambricon MLU590, and Moore Threads GPU alternatives, all of which are receiving priority procurement from state-linked buyers.",
-    region: "Asia Pacific", sector: "Semiconductors", amountUsd: null, investmentType: null,
-    entities: ["China Customs", "NVIDIA", "Huawei", "Cambricon", "Moore Threads"], sourceName: "Yahoo Finance / Reuters — China H200 Import Block, January–March 2026", sourceType: "News Wire",
-    sourceUrl: "https://finance.yahoo.com/news/nvidia-halts-china-bound-h200-120248594.html", publicationDate: new Date("2026-01-14"),
-    updatedAt: new Date("2026-03-05"), significance: 5, tags: ["China", "Export Controls", "Semiconductors", "Domestic AI"],
-    strategicImplication: "China's H200 moratorium accelerates a bifurcated global AI chip ecosystem; within 3–5 years, the Chinese AI hardware market will be effectively inaccessible to US semiconductor companies — SWFs with China technology exposure must fully re-underwrite semiconductor holdings against a Huawei-dominant domestic scenario.",
-  },
 ];
 
 // Bump this version string whenever seed data (URLs, dates, content) changes.
 // Production will re-seed automatically on next deploy when this doesn't match
 // the value stored in app_settings under key 'ai_trends_seed_version'.
-const AI_TRENDS_SEED_VERSION = "2026-03-09-v5";
+const AI_TRENDS_SEED_VERSION = "2026-03-09-v6";
 
 async function seedAiTrends() {
   await db.execute(sql`
