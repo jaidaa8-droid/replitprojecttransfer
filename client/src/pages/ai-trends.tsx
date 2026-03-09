@@ -273,10 +273,10 @@ export default function AiTrends() {
             <div className="flex-1">
               <h1 className="text-xl md:text-2xl font-display font-bold text-foreground flex items-center gap-2.5">
                 <BrainCircuit className="w-6 h-6 shrink-0" style={{ color: BRAND }} />
-                AI TRENDS & INVESTMENT INTELLIGENCE
+                AI TRENDS INTELLIGENCE
               </h1>
               <p className="text-muted-foreground font-mono mt-0.5 text-[11px]">
-                Sovereign & institutional AI investment flows · Policy & regulation · Infrastructure signals
+                Intelligence on Global AI Development and Investment
               </p>
             </div>
             <div className="shrink-0 flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground/50">
@@ -366,7 +366,10 @@ export default function AiTrends() {
                       <YAxis tick={{ fontSize: 9, fontFamily: "monospace", fill: "rgba(255,255,255,0.4)" }}
                         tickFormatter={v => `$${v}B`} />
                       <Tooltip
-                        contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontFamily: "monospace", fontSize: 11 }}
+                        contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontFamily: "monospace", fontSize: 11, color: "rgba(255,255,255,0.85)" }}
+                        labelStyle={{ color: "rgba(255,255,255,0.5)", marginBottom: 4 }}
+                        itemStyle={{ color: "rgba(255,255,255,0.85)" }}
+                        cursor={{ fill: "rgba(255,255,255,0.04)" }}
                         formatter={(v: number) => [`$${v}B`, "Investment"]} />
                       <Bar dataKey="total" radius={[4, 4, 0, 0]}>
                         {regionalData.map((_, i) => (
@@ -390,7 +393,10 @@ export default function AiTrends() {
                       <XAxis type="number" tick={{ fontSize: 9, fontFamily: "monospace", fill: "rgba(255,255,255,0.4)" }} />
                       <YAxis dataKey="cat" type="category" width={55} tick={{ fontSize: 9, fontFamily: "monospace", fill: "rgba(255,255,255,0.5)" }} />
                       <Tooltip
-                        contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontFamily: "monospace", fontSize: 11 }}
+                        contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontFamily: "monospace", fontSize: 11, color: "rgba(255,255,255,0.85)" }}
+                        labelStyle={{ color: "rgba(255,255,255,0.5)", marginBottom: 4 }}
+                        itemStyle={{ color: "rgba(255,255,255,0.85)" }}
+                        cursor={{ fill: "rgba(255,255,255,0.04)" }}
                         formatter={(v: number) => [v, "Records"]} />
                       <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                         {categoryData.map(({ cat }) => (
