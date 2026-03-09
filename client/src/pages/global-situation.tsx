@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 import {
   Search, X, Zap, ArrowRight, BrainCircuit, Crosshair,
-  Activity, ChevronLeft, Filter, Clock, RefreshCw, Layers, Radio, ExternalLink
+  Activity, ChevronLeft, Filter, Clock, RefreshCw, Layers, Radio, ExternalLink,
+  TrendingUp, TrendingDown, Minus
 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useEvents } from "@/hooks/use-events";
@@ -43,6 +44,40 @@ const SEVERITY_LABELS: Record<number, string> = {
 
 function severityColor(s: number) {
   return SEVERITY_COLORS[s] ?? SEVERITY_COLORS[1];
+}
+
+function getImpactStyle(impactType: string) {
+  const t = impactType.toLowerCase();
+  if (t.includes("opportunit")) return {
+    Icon: TrendingUp,
+    iconClass: "text-emerald-400",
+    badgeClass: "bg-emerald-400/10 text-emerald-400 border-emerald-400/30",
+    cardBorder: "border-emerald-400/30",
+    cardBg: "bg-emerald-400/5",
+  };
+  if (t.includes("risk")) return {
+    Icon: TrendingDown,
+    iconClass: "text-red-400",
+    badgeClass: "bg-red-400/10 text-red-400 border-red-400/30",
+    cardBorder: "border-red-400/30",
+    cardBg: "bg-red-400/5",
+  };
+  return {
+    Icon: Minus,
+    iconClass: "text-yellow-400",
+    badgeClass: "bg-yellow-400/10 text-yellow-400 border-yellow-400/30",
+    cardBorder: "border-yellow-400/30",
+    cardBg: "bg-yellow-400/5",
+  };
+}
+
+function getAnalogueSentiment(rationale: string): "positive" | "negative" | "mixed" {
+  const lower = rationale.toLowerCase();
+  const pos = ["opportunit", "growth", "benefit", "gain", "recovery", "resilience", "windfall", "positiv"].filter(k => lower.includes(k)).length;
+  const neg = ["risk", "crisis", "collapse", "conflict", "damage", "shock", "crash", "vulnerab", "stagflat", "destabiliz", "downturn", "undermin", "deteriorat", "adverse"].filter(k => lower.includes(k)).length;
+  if (pos > neg + 1) return "positive";
+  if (neg > pos) return "negative";
+  return "mixed";
 }
 
 export default function GlobalSituation() {
@@ -558,17 +593,27 @@ function AnalysisFullScreen({
 
               <TabsContent value="analogues" className="mt-0 space-y-3">
                 <p className="text-[11px] text-muted-foreground font-mono tracking-widest mb-4">HISTORICAL ANALOGUES</p>
-                {data.historical_analogues.map((a, i) => (
-                  <div key={i} className="bg-secondary/20 p-4 rounded-lg border border-border/50">
-                    <div className="flex justify-between items-start mb-2 gap-3">
-                      <div className="font-semibold text-sm leading-snug">{a.title} ({a.year})</div>
-                      <div className="text-xs font-mono text-primary bg-primary/10 px-2 py-1 rounded shrink-0">
-                        {(a.similarity_score * 100).toFixed(0)}% match
+                {data.historical_analogues.map((a, i) => {
+                  const sentiment = getAnalogueSentiment(a.rationale);
+                  const borderLeft = sentiment === "positive" ? "border-l-emerald-400" : sentiment === "negative" ? "border-l-red-400" : "border-l-yellow-400";
+                  const sentimentLabel = sentiment === "positive" ? { text: "OPPORTUNITY", cls: "text-emerald-400 bg-emerald-400/10 border-emerald-400/30" } : sentiment === "negative" ? { text: "RISK", cls: "text-red-400 bg-red-400/10 border-red-400/30" } : { text: "MIXED", cls: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30" };
+                  return (
+                    <div key={i} className={`bg-secondary/20 p-4 rounded-lg border border-border/50 border-l-2 ${borderLeft}`}>
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
+                        <div className="font-semibold text-sm leading-snug">{a.title} ({a.year})</div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${sentimentLabel.cls}`}>
+                            {sentimentLabel.text}
+                          </span>
+                          <span className="text-xs font-mono text-primary bg-primary/10 px-2 py-0.5 rounded whitespace-nowrap">
+                            {(a.similarity_score * 100).toFixed(0)}% match
+                          </span>
+                        </div>
                       </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{a.rationale}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{a.rationale}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </TabsContent>
 
               <TabsContent value="causal" className="mt-0 space-y-0">
@@ -602,19 +647,22 @@ function AnalysisFullScreen({
 
               <TabsContent value="impact" className="mt-0 space-y-3">
                 <p className="text-[11px] text-muted-foreground font-mono tracking-widest mb-4">PORTFOLIO IMPACT</p>
-                {data.portfolio_impact.map((p, i) => (
-                  <div key={i} className="flex gap-3 bg-secondary/20 p-4 rounded-lg border border-border/50">
-                    <Crosshair className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
-                    <div className="flex-1">
-                      <div className="text-sm font-semibold mb-1">{p.asset_or_business}</div>
-                      <div className="text-xs text-muted-foreground leading-relaxed mb-2">{p.pathway}</div>
-                      <div className="flex gap-2 flex-wrap">
-                        <span className="text-[11px] font-mono bg-destructive/10 text-destructive px-2 py-0.5 rounded border border-destructive/20">{p.impact_type}</span>
-                        <span className="text-[11px] font-mono bg-background px-2 py-0.5 rounded border border-border">{p.magnitude}</span>
+                {data.portfolio_impact.map((p, i) => {
+                  const style = getImpactStyle(p.impact_type);
+                  return (
+                    <div key={i} className={`flex gap-3 ${style.cardBg} p-4 rounded-lg border ${style.cardBorder}`}>
+                      <style.Icon className={`w-4 h-4 ${style.iconClass} mt-0.5 shrink-0`} />
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold mb-1">{p.asset_or_business}</div>
+                        <div className="text-xs text-muted-foreground leading-relaxed mb-2">{p.pathway}</div>
+                        <div className="flex gap-2 flex-wrap">
+                          <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded border ${style.badgeClass}`}>{p.impact_type}</span>
+                          <span className="text-[11px] font-mono bg-background px-2 py-0.5 rounded border border-border">{p.magnitude}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </TabsContent>
 
               <TabsContent value="action" className="mt-0 space-y-4">
