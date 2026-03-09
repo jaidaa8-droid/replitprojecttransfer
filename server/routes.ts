@@ -658,7 +658,7 @@ const AI_TREND_SEEDS = [
     description: "The US Department of Commerce commenced disbursement of CHIPS Act funds with major awards to TSMC ($6.6B), Intel ($8.5B), Samsung ($6.4B), and Micron ($6.1B) for US-based semiconductor fabrication capacity. The programme aims to produce at least 20% of leading-edge chips in the US by 2030.",
     region: "North America", sector: "Semiconductors", amountUsd: 52.7, investmentType: "Government",
     entities: ["US Government", "TSMC", "Intel", "Samsung", "Micron"], sourceName: "US Department of Commerce — CHIPS Program Office", sourceType: "Government",
-    sourceUrl: "https://www.commerce.gov/news/press-releases/2024/04/biden-harris-administration-announces-preliminary-terms-intel", publicationDate: new Date("2024-03-01"),
+    sourceUrl: "https://www.commerce.gov/news/press-releases/2024/03/biden-harris-administration-announces-preliminary-terms-intel-support", publicationDate: new Date("2024-03-01"),
     updatedAt: new Date("2024-10-01"), significance: 5, tags: ["Semiconductors", "Supply Chain", "CHIPS Act"],
     strategicImplication: "CHIPS Act reshapes global semiconductor geography; long-horizon investment in US fab real estate, tooling supply chains, and advanced packaging is supported by policy.",
   },
@@ -822,7 +822,7 @@ const AI_TREND_SEEDS = [
     description: "Anthropic secured $30 billion in its Series G round in February 2026, valuing the company at $380 billion. The round was led by Founders Fund and Coatue, with participation from NVIDIA and more than 30 institutional investors. Total funding raised by Anthropic now exceeds $40 billion since its 2021 founding. The capital is designated for compute infrastructure, international market expansion, and the continued development of the Claude model family — including Claude 3.7 Sonnet and the forthcoming Claude 4 series targeting enterprise and regulated-sector deployments.",
     region: "North America", sector: "Artificial Intelligence", amountUsd: 30.0, investmentType: "Funding Round",
     entities: ["Anthropic", "Founders Fund", "Coatue", "NVIDIA"], sourceName: "TechCrunch / Bloomberg — Anthropic Series G, February 2026", sourceType: "Investor Relations",
-    sourceUrl: "https://www.anthropic.com/news", publicationDate: new Date("2026-02-12"),
+    sourceUrl: "https://www.anthropic.com/news/anthropic-raises-30-billion-series-g-funding-380-billion-post-money-valuation", publicationDate: new Date("2026-02-12"),
     updatedAt: new Date("2026-02-12"), significance: 5, tags: ["LLM", "Safety", "Enterprise", "Frontier"],
     strategicImplication: "Anthropic's $380B valuation — 3× its October 2024 mark — reflects the market's conclusion that safety-aligned frontier AI commands a regulatory premium; enterprise SWFs with regulated sector exposure should treat Anthropic as a strategic anchor holding.",
   },
@@ -959,7 +959,7 @@ const AI_TREND_SEEDS = [
     description: "Groq — the AI inference chip company — was selected by HUMAIN to build and operate the largest AI inference cluster in the MENA region, with a $1.5 billion commitment formalised in February 2025. Groq's LanguageProcessingUnit (LPU) architecture delivers deterministic, low-latency inference at a fraction of the power consumption of GPU-based systems, making it particularly suited for Arabic-language real-time applications including government services, financial services, and healthcare. The cluster serves the EMEA and South Asia markets and is a cornerstone of HUMAIN's commercial AI-as-a-service offering.",
     region: "Middle East", sector: "Semiconductors", amountUsd: 1.5, investmentType: "Partnership",
     entities: ["Groq", "HUMAIN", "PIF"], sourceName: "Groq / HUMAIN Partnership Announcement — February 2025", sourceType: "Investor Relations",
-    sourceUrl: "https://groq.com/news/groq-humain-partnership", publicationDate: new Date("2025-02-01"),
+    sourceUrl: "https://groq.com/newsroom/saudi-arabia-announces-1-5-billion-expansion-to-fuel-ai-powered-economy-with-ai-tech-leader-groq", publicationDate: new Date("2025-02-01"),
     updatedAt: new Date("2025-02-01"), significance: 4, tags: ["Saudi Arabia", "Inference", "LPU", "Arabic AI"],
     strategicImplication: "Groq's LPU-based MENA inference cluster disrupts GPU-dominant assumptions for regional AI deployment; SWFs evaluating AI infrastructure efficiency should benchmark Groq's deterministic latency architecture against GPU alternatives for real-time government and financial service workloads.",
   },
@@ -1084,6 +1084,8 @@ const BROKEN_URL_FRAGMENTS = [
   "investor.nvidia.com",
   "g42.ai/resources/news/global-tech-alliance-launches-stargate-uae",
   "aiindex.stanford.edu",
+  "groq.com/news/groq-humain-partnership",
+  "preliminary-terms-intel-2024-04",
 ];
 
 async function seedAiTrends() {
