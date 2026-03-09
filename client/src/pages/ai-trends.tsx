@@ -319,18 +319,18 @@ export default function AiTrends() {
               <section>
                 <div className="text-[10px] font-mono text-muted-foreground/50 tracking-widest mb-3">KEY METRICS</div>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  <KpiCard icon={DollarSign} value="$91.9B" label="Global AI Investment 2023"
-                    sublabel="▼ 20% YoY from 2022 peak"
-                    sourceNote="SOURCE: Stanford HAI — AI Index 2024 · Academic Research · Apr 2024" />
-                  <KpiCard icon={TrendingUp} value="1,812" label="AI Companies Funded 2023"
-                    sublabel="US: 67.2B · China: 7.8B · UK: 3.8B"
-                    sourceNote="SOURCE: Stanford HAI — AI Index 2024 · Apr 2024" />
+                  <KpiCard icon={DollarSign} value="$189B" label="AI Funding in February 2026 Alone"
+                    sublabel="All-time monthly record · 90% to AI companies"
+                    sourceNote="SOURCE: Crunchbase Venture Report · Feb 2026" />
+                  <KpiCard icon={TrendingUp} value="$700B+" label="Big Tech AI Capex 2026"
+                    sublabel="Amazon $200B · Google $175B · MSFT $145B · Meta $125B"
+                    sourceNote="SOURCE: Goldman Sachs AI Capex Report · Feb 2026" />
                   <KpiCard icon={Landmark} value="60+" label="Countries with National AI Strategy"
-                    sublabel="Up from 27 in 2019"
-                    sourceNote="SOURCE: OECD AI Policy Observatory · 2024" />
-                  <KpiCard icon={Zap} value="2×" label="AI Data Centre Power by 2026"
-                    sublabel="AI-driven demand could match France total"
-                    sourceNote="SOURCE: IEA — Electricity 2024 · Jan 2024" />
+                    sublabel="US federal framework preempts state laws from Dec 2025"
+                    sourceNote="SOURCE: OECD AI Policy Observatory · 2025" />
+                  <KpiCard icon={Zap} value="10 GW" label="New AI Data Centre Power Added 2025"
+                    sublabel="Global AI power demand tripling by 2030"
+                    sourceNote="SOURCE: IEA — World Energy Outlook 2025" />
                 </div>
               </section>
 
