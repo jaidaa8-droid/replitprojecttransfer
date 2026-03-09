@@ -328,6 +328,8 @@ export function startNewsFetchScheduler(): void {
     console.log(`[news-fetcher] done — added: ${result.added}, merged: ${result.merged}, skipped: ${result.skipped}`);
   };
 
-  run();
-  setInterval(run, INTERVAL_MS);
+  const safeRun = () => run().catch((err) => console.error("[news-fetcher] scheduler error:", err));
+
+  safeRun();
+  setInterval(safeRun, INTERVAL_MS);
 }
