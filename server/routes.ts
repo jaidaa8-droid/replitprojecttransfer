@@ -959,8 +959,8 @@ const AI_TREND_SEEDS = [
     description: "Groq — the AI inference chip company — was selected by HUMAIN to build and operate the largest AI inference cluster in the MENA region, with a $1.5 billion commitment formalised in February 2025. Groq's LanguageProcessingUnit (LPU) architecture delivers deterministic, low-latency inference at a fraction of the power consumption of GPU-based systems, making it particularly suited for Arabic-language real-time applications including government services, financial services, and healthcare. The cluster serves the EMEA and South Asia markets and is a cornerstone of HUMAIN's commercial AI-as-a-service offering.",
     region: "Middle East", sector: "Semiconductors", amountUsd: 1.5, investmentType: "Partnership",
     entities: ["Groq", "HUMAIN", "PIF"], sourceName: "Groq / HUMAIN Partnership Announcement — February 2025", sourceType: "Investor Relations",
-    sourceUrl: "https://groq.com/newsroom/saudi-arabia-announces-1-5-billion-expansion-to-fuel-ai-powered-economy-with-ai-tech-leader-groq", publicationDate: new Date("2025-02-01"),
-    updatedAt: new Date("2025-02-01"), significance: 4, tags: ["Saudi Arabia", "Inference", "LPU", "Arabic AI"],
+    sourceUrl: "https://groq.com/newsroom/saudi-arabia-announces-1-5-billion-expansion-to-fuel-ai-powered-economy-with-ai-tech-leader-groq", publicationDate: new Date("2025-02-10"),
+    updatedAt: new Date("2025-02-10"), significance: 4, tags: ["Saudi Arabia", "Inference", "LPU", "Arabic AI"],
     strategicImplication: "Groq's LPU-based MENA inference cluster disrupts GPU-dominant assumptions for regional AI deployment; SWFs evaluating AI infrastructure efficiency should benchmark Groq's deterministic latency architecture against GPU alternatives for real-time government and financial service workloads.",
   },
   {
