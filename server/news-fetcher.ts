@@ -320,7 +320,7 @@ export async function fetchAndIngestNews(): Promise<{ added: number; merged: num
 }
 
 export function startNewsFetchScheduler(): void {
-  const INTERVAL_MS = 30 * 60 * 1000;
+  const INTERVAL_MS = 15 * 60 * 1000;
 
   const run = async () => {
     console.log("[news-fetcher] fetching live news...");
