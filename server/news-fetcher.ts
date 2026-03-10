@@ -10,6 +10,9 @@ const RSS_SOURCES = [
   { url: "https://www.aljazeera.com/xml/rss/all.xml", name: "Al Jazeera" },
   { url: "https://feeds.bbci.co.uk/news/world/rss.xml", name: "BBC World" },
   { url: "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml", name: "BBC Middle East" },
+  { url: "https://feeds.skynews.com/feeds/rss/world.xml", name: "Sky News" },
+  { url: "https://www.theguardian.com/world/rss", name: "The Guardian" },
+  { url: "https://rss.dw.com/rdf/rss-en-world", name: "DW World" },
 ];
 
 function extractRssItems(xml: string): { title: string; description: string; pubDate: string; link: string }[] {

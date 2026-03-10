@@ -53,10 +53,10 @@ export class DatabaseStorage implements IStorage {
       else if (timeWindow === "7d") hours = 24 * 7;
 
       const threshold = new Date(now.getTime() - hours * 60 * 60 * 1000);
-      return await db.select().from(events).where(and(gte(events.timestamp, threshold), minConfidence));
+      return await db.select().from(events).where(and(gte(events.timestamp, threshold), minConfidence)).orderBy(desc(events.timestamp));
     }
 
-    return await db.select().from(events).where(minConfidence);
+    return await db.select().from(events).where(minConfidence).orderBy(desc(events.timestamp));
   }
 
   async getEventsForDedup(): Promise<{ id: number; title: string; sources: string[]; sourceUrls: string[] | null }[]> {
