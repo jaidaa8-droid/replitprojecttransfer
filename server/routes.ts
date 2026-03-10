@@ -358,27 +358,31 @@ Generate a JSON response. Your response MUST exactly match this JSON schema:
   "live_indicators": [{"indicator_name": "string", "status": "string", "threshold": "string", "note": "string"}],
   "portfolio_impact": [{"asset_or_business": "string", "impact_type": "string", "magnitude": "string", "pathway": "string"}],
   "action_framework": {
-    "no_regrets": [{"action": "string", "tag": "opportunity", "owner_role": "string", "deadline": "string"}],
-    "study_now": [{"action": "string", "tag": "opportunity", "owner_role": "string", "deadline": "string"}],
-    "monitor": [{"action": "string", "tag": "opportunity", "owner_role": "string", "deadline": "string", "trigger": "string"}]
+    "no_regrets": [{"action": "string", "tag": "string", "owner_role": "string", "deadline": "string"}],
+    "study_now": [{"action": "string", "tag": "string", "owner_role": "string", "deadline": "string"}],
+    "monitor": [{"action": "string", "tag": "string", "owner_role": "string", "deadline": "string", "trigger": "string"}]
   },
   "preemptive_playbook": [{"pre_event_action": "string", "cost_complexity": "string", "counterfactual_outcome": "string"}]
 }
 
 FIELD GUIDANCE:
 
-historical_analogues (3–4 items): Surface precedents from sovereign investment history, geopolitical realignments, or national transformation programs — not stock market events. Rationale must explain what the SWF should learn from the analogue: what worked, what failed, and what structural pattern repeats. similarity_score 0.0–1.0.
+historical_analogues (3–4 items): Surface precedents specifically from sovereign investment history, geopolitical realignments, Gulf/MENA economic transitions, or national transformation programs. Do NOT use generic stock market events. Each rationale must answer: what structural pattern repeats, what the SWF should replicate or avoid, and how the outcome maps to current GCC priorities. Examples of strong analogues: Abu Dhabi's 1970s oil windfall capital deployment, Norway's GPFG creation amid North Sea boom, Singapore's Temasek industrial diversification, UAE's post-1990 Gulf War reconstruction positioning, China's BRI launch, Korea's 1997 crisis restructuring. similarity_score 0.0–1.0.
 
-causal_chain (4–6 steps): Map the event's second and third-order effects through the lens of sovereign priorities — supply chain, energy security, capital flows, technology access, geopolitical alignment. Use sovereign-relevant time horizons (Near-term: 0–12M, Medium-term: 1–3Y, Strategic: 3–10Y, Structural: 10Y+). Probability as "Very High / High / Medium / Low / Speculative".
+causal_chain (4–6 steps): Map second and third-order effects through GCC sovereign lenses — oil revenue, energy security, Hormuz/Red Sea chokepoints, Gulf aviation and logistics hubs, Vision 2030 program delivery, GCC labour markets, Islamic finance and sukuk markets, regional diplomatic positioning, and technology access dependencies. Time horizons: "Near-term (0–12M)", "Medium-term (1–3Y)", "Strategic (3–10Y)", "Structural (10Y+)". Probability: "Very High / High / Medium / Low / Speculative".
 
-portfolio_impact (4–6 items): Frame "asset_or_business" as a sovereign portfolio position, strategic sector, or national program (e.g., "Domestic Petrochemical Complex", "GCC Aviation & Logistics Platform", "Technology Localization Program", "Strategic Infrastructure Co-investments"). impact_type MUST be one of: "Opportunity", "Risk", or "Mixed". magnitude as "Critical / Significant / Moderate / Limited". pathway must explain the direct mechanism connecting the event to the sovereign position.
+portfolio_impact (4–6 items): "asset_or_business" MUST name a concrete GCC sovereign position or program — not a generic sector. Use examples like: "SABIC Downstream Chemical Platform", "NEOM Gigaproject Infrastructure Program", "Saudi Aramco Upstream Valuation & Dividend", "GCC Aviation Hub (SAUDIA / Emirates / Air Arabia)", "Red Sea Tourism Development (AMAALA / NEOM Coast)", "Saudi Vision 2030 Entertainment & Sports Portfolio", "PIF International Technology Co-investments", "GCC Sovereign Sukuk & Islamic Finance Instruments", "Regional Logistics & Ports Platform (MAWANI / DP World)", "Saudi Domestic Manufacturing & Localization Program". impact_type MUST be one of: "Opportunity", "Risk", or "Mixed". magnitude: "Critical / Significant / Moderate / Limited". pathway must be a single precise sentence explaining the direct causal mechanism from event to position.
 
-action_framework:
-- no_regrets: Sovereign-level actions that are justified regardless of how the event develops. Owner roles must reference institutional functions (e.g., "Head of Strategy", "Portfolio Director — Real Assets", "CIO Office", "Investment Committee", "Sector Development Team").
-- study_now: Deeper analysis, diligence, or scenario work before committing capital or policy position.
-- monitor: Named indicators to track before acting; trigger must specify the condition that escalates this to active decision.
+action_framework — think like a sovereign investment committee secretary preparing action items for the CIO and Board:
+- no_regrets (2–3 items): Actions fully justified regardless of how the event unfolds. Examples: accelerating GCC energy infrastructure hedging, direct government-to-government negotiation initiation, sovereign bond portfolio rebalancing, diplomatic channel activation, emergency scenario planning session. tag MUST be one of: "opportunity", "risk-hedge", "diplomatic", "capital-reallocation", "operational". owner_role MUST reference a real institutional function (e.g., "CIO — PIF International", "Head of Strategy & Transformation", "Portfolio Director — Infrastructure & Real Assets", "Investment Committee Chairman", "Head of Geopolitical Risk", "Sector Development Team — Technology").
+- study_now (2–3 items): Immediate analytical work needed before capital deployment or policy commitment. Examples: supply-chain exposure mapping, political risk scenario modelling, bilateral trade dependency audit, technology localization gap analysis, stress-testing Aramco dividend assumptions. tag MUST be one of: "diligence", "scenario-modelling", "risk-assessment", "market-intelligence", "legal-regulatory". owner_role as above.
+- monitor (2–3 items): Named leading indicators to track weekly before acting. trigger MUST be a specific, measurable threshold (e.g., "Brent crude drops below $70/bbl for 10+ consecutive days", "UN Security Council passes binding resolution", "GCC foreign reserves fall below 12 months import cover"). tag MUST be one of: "macro-indicator", "geopolitical-signal", "regulatory-milestone", "counterparty-watch", "market-threshold".
 
-All outputs must avoid retail investing language, short-term trading commentary, hype, and generic global commentary without sovereign strategic relevance.`
+preemptive_playbook (2–3 items): Sovereign pre-positioning actions the GCC SWF can execute NOW, before the causal chain materialises. Frame as low-regret insurance moves: deal structuring options, diplomatic pre-engagement, strategic reserve building, counterparty relationship deepening, regulatory sandbox preparation, co-investment pipeline seeding. pre_event_action is the specific action. cost_complexity is "Low / Medium / High" cost and complexity. counterfactual_outcome describes what the SWF forfeits or suffers if it does NOT act pre-emptively.
+
+live_indicators (3–5 items): The exact macro, geopolitical, or market indicators a GCC sovereign portfolio committee should track weekly to detect this event's escalation or de-escalation. Examples: Brent crude spot price, Strait of Hormuz shipping AIS density, GCC CDS spreads, Saudi foreign reserves (SAMA), US-China trade tariff escalation index, regional PMI manufacturing. status: "Elevated / Stable / Declining / Critical". threshold: the specific level that changes the investment stance. note: one sentence on why this indicator is the leading signal.
+
+All outputs must avoid retail investing language, short-term trading commentary, generic global market commentary, and hype. Every item must have direct sovereign strategic relevance to a GCC SWF operating on a 10–30 year capital horizon.`
           },
           {
             role: "user",
