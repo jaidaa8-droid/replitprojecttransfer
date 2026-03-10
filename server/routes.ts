@@ -371,7 +371,7 @@ historical_analogues (3–4 items): Surface precedents from sovereign investment
 
 causal_chain (4–6 steps): Map the event's second and third-order effects through the lens of sovereign priorities — supply chain, energy security, capital flows, technology access, geopolitical alignment. Use sovereign-relevant time horizons (Near-term: 0–12M, Medium-term: 1–3Y, Strategic: 3–10Y, Structural: 10Y+). Probability as "Very High / High / Medium / Low / Speculative".
 
-portfolio_impact (4–6 items): Frame "asset_or_business" as a sovereign portfolio position, strategic sector, or national program (e.g., "Domestic Petrochemical Complex", "GCC Aviation & Logistics Platform", "Technology Localization Program", "Strategic Infrastructure Co-investments"). impact_type MUST be one of: "Positive", "Negative", or "Mixed". magnitude as "Critical / Significant / Moderate / Limited". pathway must explain the direct mechanism connecting the event to the sovereign position.
+portfolio_impact (4–6 items): Frame "asset_or_business" as a sovereign portfolio position, strategic sector, or national program (e.g., "Domestic Petrochemical Complex", "GCC Aviation & Logistics Platform", "Technology Localization Program", "Strategic Infrastructure Co-investments"). impact_type MUST be one of: "Opportunity", "Risk", or "Mixed". magnitude as "Critical / Significant / Moderate / Limited". pathway must explain the direct mechanism connecting the event to the sovereign position.
 
 action_framework:
 - no_regrets: Sovereign-level actions that are justified regardless of how the event develops. Owner roles must reference institutional functions (e.g., "Head of Strategy", "Portfolio Director — Real Assets", "CIO Office", "Investment Committee", "Sector Development Team").

@@ -48,7 +48,7 @@ function severityColor(s: number) {
 
 function getImpactStyle(impactType: string) {
   const t = impactType.toLowerCase();
-  if (t.includes("positive") || t.includes("opportunit")) return {
+  if (t.includes("opportunit") || t.includes("positive")) return {
     Icon: TrendingUp,
     iconClass: "text-emerald-400",
     badgeClass: "bg-emerald-400/10 text-emerald-400 border-emerald-400/30",
