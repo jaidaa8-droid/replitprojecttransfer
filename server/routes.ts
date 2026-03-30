@@ -10,10 +10,11 @@ import { db } from "./db";
 import { sql } from "drizzle-orm";
 import fs from "fs";
 import path from "path";
+import { GROQ_API_KEY, GROQ_MODEL, GROQ_BASE_URL } from "./config";
 
 const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  apiKey: GROQ_API_KEY,
+  baseURL: GROQ_BASE_URL,
 });
 
 const h = (hours: number) => new Date(Date.now() - hours * 60 * 60 * 1000);
@@ -329,7 +330,7 @@ export async function registerRoutes(
       }
 
       const response = await openai.chat.completions.create({
-        model: "gpt-5.1",
+        model: GROQ_MODEL,
         response_format: { type: "json_object" },
         messages: [
           {
@@ -418,7 +419,7 @@ Analyze the sovereign strategic implications of this event for a GCC sovereign w
       const eventsSummary = eventsList.map(e => `${e.title}: ${e.description}`).join("\n");
 
       const response = await openai.chat.completions.create({
-        model: "gpt-5.1",
+        model: GROQ_MODEL,
         response_format: { type: "json_object" },
         messages: [
           {

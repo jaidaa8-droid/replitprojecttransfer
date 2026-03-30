@@ -1,9 +1,10 @@
 import OpenAI from "openai";
 import { storage } from "./storage";
+import { GROQ_API_KEY, GROQ_MODEL, GROQ_BASE_URL } from "./config";
 
 const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  apiKey: GROQ_API_KEY,
+  baseURL: GROQ_BASE_URL,
 });
 
 const RSS_SOURCES = [
@@ -141,16 +142,16 @@ Headlines:
 ${headlines.map((h, i) => `${i + 1}. [${h.source}] pubDate: ${h.pubDate || "unknown"} link: ${h.link || ""}\n   ${h.title}\n   ${h.description}`).join("\n\n")}`;
 
   try {
-    console.log(`[news-fetcher] calling GPT for ${headlines.length} headlines...`);
+    console.log(`[news-fetcher] calling Groq (${GROQ_MODEL}) for ${headlines.length} headlines...`);
     const response = await openai.chat.completions.create({
-      model: "gpt-5.1",
+      model: GROQ_MODEL,
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
-      max_completion_tokens: 4000,
+      max_tokens: 4000,
     });
 
     const content = response.choices[0].message.content || "{}";
-    console.log(`[news-fetcher] GPT response length: ${content.length}, preview:`, content.substring(0, 200));
+    console.log(`[news-fetcher] Groq response length: ${content.length}, preview:`, content.substring(0, 200));
     const parsed = JSON.parse(content);
     const arr: RawEvent[] = Array.isArray(parsed) ? parsed : (parsed.events || parsed.data || parsed.results || []);
 
