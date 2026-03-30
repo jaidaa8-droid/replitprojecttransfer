@@ -78,6 +78,61 @@ The app will be available at [http://localhost:5000](http://localhost:5000).
 
 ---
 
+## Running with Docker
+
+This is the easiest way to run the app — Docker handles the database automatically, no separate PostgreSQL installation needed.
+
+### Prerequisites
+
+- [Docker](https://www.docker.com/get-started) installed and running
+- [Docker Compose](https://docs.docker.com/compose/) (included with Docker Desktop)
+
+### 1. Create a `.env` file
+
+In the project root, create a `.env` file with just your Groq API key:
+
+```env
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+> You can leave this blank for now and add it later. The app will start but AI features won't work until the key is set.
+
+### 2. Build and start
+
+```bash
+docker compose up --build
+```
+
+This will:
+- Build the app image
+- Start a PostgreSQL database container
+- Run database migrations automatically
+- Start the app on port 5000
+
+The app will be available at [http://localhost:5000](http://localhost:5000).
+
+### 3. Stop the app
+
+```bash
+docker compose down
+```
+
+Your database data is preserved in a Docker volume. To also delete the database:
+
+```bash
+docker compose down -v
+```
+
+### Updating the Groq API key
+
+Edit the `.env` file and restart:
+
+```bash
+docker compose restart app
+```
+
+---
+
 ## Environment Variables Reference
 
 | Variable | Required | Description |
