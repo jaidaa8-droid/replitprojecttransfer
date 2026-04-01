@@ -1119,6 +1119,13 @@ async function seedAiTrends() {
     )
   `);
 
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key varchar(255) PRIMARY KEY,
+      value text NOT NULL
+    )
+  `);
+
   // Check stored seed version — re-seed whenever it doesn't match the current version
   const versionRow = await db.execute(sql`
     SELECT value FROM app_settings WHERE key = 'ai_trends_seed_version'
